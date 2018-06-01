@@ -42,17 +42,15 @@ func NewNode(ctx context.Context, bootstrap []string) (*core.IpfsNode, error) {
 	})
 }
 
-func NewInmemoryNode(ctx context.Context) *core.IpfsNode {
-	n := &core.IpfsNode{}
-
-	ds := datastore.NewMapDatastore()
-	bs := blockstore.NewBlockstore(ds)
-	gcl := blockstore.NewGCLocker()
-	bserv := blockservice.New(bs, offline.Exchange(bs))
+func NewInMemoryNode(ctx context.Context) *core.IpfsNode {
+	dstore := datastore.NewMapDatastore()
+	bstore := blockstore.NewBlockstore(dstore)
+	bserv := blockservice.New(bstore, offline.Exchange(bstore))
 	dserv := merkledag.NewDAGService(bserv)
 
-	n.Blockstore = blockstore.NewGCBlockstore(bs, gcl)
-	n.Pinning = pin.NewPinner(ds, dserv, dserv)
-	n.DAG = dserv
-	return n
+	return &core.IpfsNode{
+		Blockstore: blockstore.NewGCBlockstore(bstore, blockstore.NewGCLocker()),
+		Pinning:    pin.NewPinner(dstore, dserv, dserv),
+		DAG:        dserv,
+	}
 }

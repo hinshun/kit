@@ -13,7 +13,7 @@ import (
 )
 
 func SyncCommands(ctx context.Context, api coreiface.CoreAPI, hashes []string) (path []string, err error) {
-	n := NewInmemoryNode(ctx)
+	n := NewInMemoryNode(ctx)
 
 	var paths []string
 	for _, hash := range hashes {
