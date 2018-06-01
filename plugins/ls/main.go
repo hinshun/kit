@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/exec"
 )
@@ -15,7 +16,7 @@ func (c command) Usage() string {
 	return "list directory contents"
 }
 
-func (c command) Action() error {
+func (c command) Action(ctx context.Context) error {
 	cmd := exec.Command("ls", "-la")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
