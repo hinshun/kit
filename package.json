@@ -1,0 +1,24 @@
+{
+  "author": "edgarl",
+  "bugs": {},
+  "gxDependencies": [
+    {
+      "author": "whyrusleeping",
+      "hash": "QmVcLF2CgjQb5BWmYFWsDfxDjbzBfcChfdHRedxeL3dV4K",
+      "name": "cli",
+      "version": "0.0.0"
+    },
+    {
+      "hash": "QmcKwjeebv5SX3VFUGDFa4BNMYhy14RRaCzQP7JN3UQDpB",
+      "name": "go-ipfs",
+      "version": "0.4.15"
+    }
+  ],
+  "gxVersion": "0.12.1",
+  "language": "go",
+  "license": "",
+  "name": "kit",
+  "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
+  "version": "0.0.0"
+}
+
