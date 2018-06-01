@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/hinshun/kit/cmd/kit/command"
+	"github.com/hinshun/kit/interrupt"
 )
 
 func main() {
@@ -15,7 +18,12 @@ func main() {
 }
 
 func run() error {
-	app, err := command.App()
+	ctx := context.Background()
+
+	ih, ctx := interrupt.NewInterruptHandler(ctx, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+	defer ih.Close()
+
+	app, err := command.App(ctx)
 	if err != nil {
 		return err
 	}

@@ -12,12 +12,11 @@ import (
 	cli "gopkg.in/urfave/cli.v2"
 )
 
-func App() (*cli.App, error) {
-	ctx := context.Background()
+func App(ctx context.Context) (*cli.App, error) {
 	app := &cli.App{
 		Name: "kit",
 	}
-	logrus.SetLevel(logrus.DebugLevel)
+	// logrus.SetLevel(logrus.DebugLevel)
 
 	commands, err := loadCommands(ctx)
 	if err != nil {
