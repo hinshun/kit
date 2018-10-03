@@ -19,7 +19,7 @@ import (
 )
 
 func NewNode(ctx context.Context, cfg *kit.Config) (*core.IpfsNode, error) {
-	dir := filepath.Join(cfg.RootDir, ".kit/repo")
+	dir := filepath.Join(cfg.RootDir, "repo")
 	if !fsrepo.IsInitialized(dir) {
 		repoCfg, err := config.Init(os.Stdout, 2048)
 		if err != nil {

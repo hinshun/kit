@@ -41,7 +41,7 @@ func SyncCommand(ctx context.Context, cfg *kit.Config, api coreiface.CoreAPI, n 
 	}
 	p := coreiface.IpfsPath(c)
 
-	filename = filepath.Join(cfg.RootDir, ".kit", p.String())
+	filename = filepath.Join(cfg.RootDir, p.String())
 	stat, err := os.Stat(filename)
 	if err != nil && !os.IsNotExist(err) {
 		return "", err

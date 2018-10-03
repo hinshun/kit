@@ -2,8 +2,6 @@ package command
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/ipfs/go-ipfs/core/coreapi"
 
@@ -25,28 +23,22 @@ func App(ctx context.Context) (*cli.App, error) {
 }
 
 func loadCommands(ctx context.Context) ([]cli.Command, error) {
-	cfg, err := kit.ParseConfig("kit.json")
+	cfg, err := kit.ParseConfig(".kit/config.json")
 	if err != nil {
 		return nil, err
 	}
 
-	before := time.Now()
 	n, err := ipfs.NewNode(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("took %s to create bootstrapped ipfs node\n", time.Now().Sub(before))
 
 	api := coreapi.NewCoreAPI(n)
-
-	before = time.Now()
 	paths, err := ipfs.SyncCommands(ctx, cfg, api, cfg.Commands)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("took %s to sync commands\n", time.Now().Sub(before))
 
-	before = time.Now()
 	var commands []cli.Command
 	for _, path := range paths {
 		command, err := linker.LinkCommand(path)
@@ -62,7 +54,6 @@ func loadCommands(ctx context.Context) ([]cli.Command, error) {
 			},
 		})
 	}
-	fmt.Printf("took %s to link commands\n", time.Now().Sub(before))
 
 	return commands, nil
 }

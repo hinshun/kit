@@ -68,5 +68,5 @@ func run() error {
 		return err
 	}
 
-	return ioutil.WriteFile("kit.json", data, 0644)
+	return ioutil.WriteFile(filepath.Join(cfg.RootDir, "config.json"), data, 0644)
 }
