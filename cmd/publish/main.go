@@ -50,7 +50,7 @@ func run() error {
 			return err
 		}
 
-		fmt.Printf("published plugin '%s' to ipfs '%s'", command.Name(), p.Cid())
+		fmt.Printf("published plugin '%s' to ipfs '%s'\n", command.Name(), p.Cid())
 		commands = append(commands, p.Cid().String())
 		return nil
 	})
