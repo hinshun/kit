@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 )
 
 // InterruptHandler helps set up an interrupt handler that can be cleanly shut
@@ -16,13 +17,18 @@ type InterruptHandler struct {
 	wg  sync.WaitGroup
 }
 
-func NewInterruptHandler(ctx context.Context, sigs ...os.Signal) (io.Closer, context.Context) {
+type handlerFunc func(ih *InterruptHandler, sig os.Signal)
+
+// NewInterruptHandler returns a new interrupt handler that will invoke cancel
+// if any of the signals provided are received.
+func NewInterruptHandler(cancel context.CancelFunc, sigs ...os.Signal) io.Closer {
 	intrh := &InterruptHandler{
 		sig: make(chan os.Signal, 1),
 	}
-	ctx, cancel := context.WithCancel(ctx)
 
-	handlerFunc := func(count int, ih *InterruptHandler) {
+	count := 0
+	handlerFunc := func(ih *InterruptHandler, sig os.Signal) {
+		count++
 		switch count {
 		case 1:
 			fmt.Println() // Prevent un-terminated ^C character in terminal
@@ -35,14 +41,20 @@ func NewInterruptHandler(ctx context.Context, sigs ...os.Signal) (io.Closer, con
 
 		default:
 			fmt.Println("Received another interrupt before graceful shutdown, terminating...")
-			os.Exit(-1)
+
+			syscallSig, ok := sig.(syscall.Signal)
+			if !ok {
+				os.Exit(-1)
+			}
+			os.Exit(128 + int(syscallSig))
 		}
 	}
 
 	intrh.Handle(handlerFunc, sigs...)
-	return intrh, ctx
+	return intrh
 }
 
+// Close closes its signal receiver and waits for its handlers to exit cleanly.
 func (ih *InterruptHandler) Close() error {
 	close(ih.sig)
 	ih.wg.Wait()
@@ -54,15 +66,13 @@ func (ih *InterruptHandler) Close() error {
 // times the handler has been triggered in total, as well as the handler itself,
 // so that the handling logic can use the handler's wait group to ensure clean
 // shutdown when Close() is called.
-func (ih *InterruptHandler) Handle(handler func(count int, ih *InterruptHandler), sigs ...os.Signal) {
+func (ih *InterruptHandler) Handle(handler handlerFunc, sigs ...os.Signal) {
 	signal.Notify(ih.sig, sigs...)
 	ih.wg.Add(1)
 	go func() {
 		defer ih.wg.Done()
-		count := 0
-		for range ih.sig {
-			count++
-			handler(count, ih)
+		for sig := range ih.sig {
+			handler(ih, sig)
 		}
 		signal.Stop(ih.sig)
 	}()

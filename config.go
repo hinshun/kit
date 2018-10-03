@@ -1,10 +1,9 @@
 package kit
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os"
-
-	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
@@ -25,7 +24,7 @@ func ParseConfig(path string) (*Config, error) {
 			return nil, err
 		}
 
-		_, err = toml.Decode(string(data), &cfg)
+		err = json.Unmarshal(data, &cfg)
 		if err != nil {
 			return nil, err
 		}

@@ -1,56 +1,14 @@
 {
-  "author": "edgarl",
+  "author": "hinshun",
   "bugs": {},
   "gx": {
     "dvcsimport": "github.com/hinshun/kit"
   },
   "gxDependencies": [
     {
-      "hash": "QmcKwjeebv5SX3VFUGDFa4BNMYhy14RRaCzQP7JN3UQDpB",
+      "hash": "QmebqVUQQqQFhg74FtQFszUJo22Vpr3e8qBAkvvV4ho9HH",
       "name": "go-ipfs",
-      "version": "0.4.15"
-    },
-    {
-      "author": "ipfs",
-      "hash": "QmWM5HhdG5ZQNyHQ5XhMdGmV9CvLpFynQfGpTxN2MEM7Lc",
-      "name": "go-ipfs-exchange-offline",
-      "version": "0.0.1"
-    },
-    {
-      "author": "jbenet",
-      "hash": "QmXRKBQA4wXP7xWbFiZsR1GP4HV6wMDQ1aWFxZZ4uBcPX9",
-      "name": "go-datastore",
-      "version": "2.4.0"
-    },
-    {
-      "author": "ipfs",
-      "hash": "QmaG4DZ4JaqEfvPWt5nPPgoTzhc1tr1T3f4Nu9Jpdm8ymY",
-      "name": "go-ipfs-blockstore",
-      "version": "0.0.2"
-    },
-    {
-      "author": "BurntSushi",
-      "hash": "QmW8bDuF4uSaw9N8xJePdMJJFubTpEmQyuHfVxaYMYTCM7",
-      "name": "toml",
-      "version": "0.0.0"
-    },
-    {
-      "author": "gopkg.in",
-      "hash": "QmeXzj1hAkciaeVoBmsZpjUUxgZwdWLBwUHeob8U9b6KC1",
-      "name": "yaml.v2",
-      "version": "0.0.0"
-    },
-    {
-      "author": "urfave",
-      "hash": "QmVDQ1mSzUdAupFR64zZhBxvMQR2NQtGwstoDpjMBBrYru",
-      "name": "cli.v2",
-      "version": "0.0.0"
-    },
-    {
-      "author": "The Go Authors",
-      "hash": "QmVacYeiVAKB5fC71funx5EnaHMZ6L68Mtox4t15Xx24F2",
-      "name": "sys",
-      "version": "0.2.0"
+      "version": "0.4.17"
     }
   ],
   "gxVersion": "0.12.1",

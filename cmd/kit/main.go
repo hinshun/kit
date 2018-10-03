@@ -23,18 +23,22 @@ func main() {
 }
 
 func run() error {
-	ctx := context.Background()
+	var (
+		enableProfiling = os.Getenv(EnvEnableProfiling) != ""
+	)
 
-	if os.Getenv(EnvEnableProfiling) != "" {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	ih := interrupt.NewInterruptHandler(cancel, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+	defer ih.Close()
+
+	if enableProfiling {
 		p, err := profile.NewProfile()
 		if err != nil {
 			return err
 		}
 		defer p.Close()
 	}
-
-	ih, ctx := interrupt.NewInterruptHandler(ctx, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
-	defer ih.Close()
 
 	app, err := command.App(ctx)
 	if err != nil {

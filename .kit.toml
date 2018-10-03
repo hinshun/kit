@@ -1,6 +1,0 @@
-bootstrap = [
-  "/ip4/159.89.154.81/tcp/4001/ipfs/QmVBK7PgRWvNPL5oHCgfMvBWvRXbQRCy6AtNbZswGYuodD"
-]
-commands = [
-  "QmVBK7PgRWvNPL5oHCgfMvBWvRXbQRCy6AtNbZswGYuodD"
-]

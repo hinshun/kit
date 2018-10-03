@@ -1,3 +1,5 @@
 bin/*
 .gx/cache
 vendor
+kit.json
+kit
