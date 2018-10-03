@@ -23,7 +23,11 @@ func main() {
 
 func run() error {
 	ctx := context.Background()
-	n, err := ipfs.NewNode(ctx, nil)
+	cfg := &kit.Config{
+		RootDir: "./.kit",
+	}
+
+	n, err := ipfs.NewNode(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -58,10 +62,8 @@ func run() error {
 		return err
 	}
 
-	config := kit.Config{
-		Commands: commands,
-	}
-	data, err := json.Marshal(&config)
+	cfg.Commands = commands
+	data, err := json.MarshalIndent(cfg, "", "    ")
 	if err != nil {
 		return err
 	}

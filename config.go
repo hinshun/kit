@@ -6,7 +6,12 @@ import (
 	"os"
 )
 
+var (
+	DefaultRootDir = "~/.kit"
+)
+
 type Config struct {
+	RootDir   string
 	Commands  []string
 	Bootstrap []string
 }

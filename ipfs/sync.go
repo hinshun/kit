@@ -7,18 +7,19 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hinshun/kit"
 	cid "github.com/ipfs/go-cid"
 	util "github.com/ipfs/go-ipfs-util"
 	"github.com/ipfs/go-ipfs/core"
 	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
 )
 
-func SyncCommands(ctx context.Context, api coreiface.CoreAPI, hashes []string) (path []string, err error) {
+func SyncCommands(ctx context.Context, cfg *kit.Config, api coreiface.CoreAPI, hashes []string) (path []string, err error) {
 	n := NewInMemoryNode()
 
 	var paths []string
 	for _, hash := range hashes {
-		path, err := SyncCommand(ctx, api, n, hash)
+		path, err := SyncCommand(ctx, cfg, api, n, hash)
 		if err != nil {
 			return nil, err
 		}
@@ -27,7 +28,7 @@ func SyncCommands(ctx context.Context, api coreiface.CoreAPI, hashes []string) (
 	return paths, nil
 }
 
-func SyncCommand(ctx context.Context, api coreiface.CoreAPI, n *core.IpfsNode, key string) (filename string, err error) {
+func SyncCommand(ctx context.Context, cfg *kit.Config, api coreiface.CoreAPI, n *core.IpfsNode, key string) (filename string, err error) {
 	// p, err := api.Name().Resolve(ctx, hash)
 	// if err != nil {
 	// 	return "", fmt.Errorf("failed to resolve '%s': %s", hash, err)
@@ -40,7 +41,7 @@ func SyncCommand(ctx context.Context, api coreiface.CoreAPI, n *core.IpfsNode, k
 	}
 	p := coreiface.IpfsPath(c)
 
-	filename = filepath.Join(os.Getenv("HOME"), ".kit", p.String())
+	filename = filepath.Join(cfg.RootDir, ".kit", p.String())
 	stat, err := os.Stat(filename)
 	if err != nil && !os.IsNotExist(err) {
 		return "", err

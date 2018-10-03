@@ -31,7 +31,7 @@ func loadCommands(ctx context.Context) ([]cli.Command, error) {
 	}
 
 	before := time.Now()
-	n, err := ipfs.NewNode(ctx, cfg.Bootstrap)
+	n, err := ipfs.NewNode(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -39,20 +39,8 @@ func loadCommands(ctx context.Context) ([]cli.Command, error) {
 
 	api := coreapi.NewCoreAPI(n)
 
-	// f, err := os.Open("./bin/ls")
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// p, err := api.Block().Put(ctx, f)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Printf("IPFS block put: %s", p.Cid())
-	// return nil, nil
-
 	before = time.Now()
-	paths, err := ipfs.SyncCommands(ctx, api, cfg.Commands)
+	paths, err := ipfs.SyncCommands(ctx, cfg, api, cfg.Commands)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,9 @@ package ipfs
 
 import (
 	"context"
-	"fmt"
+	"path/filepath"
+
+	"github.com/hinshun/kit"
 	datastore "github.com/ipfs/go-datastore"
 	blockstore "github.com/ipfs/go-ipfs-blockstore"
 	offline "github.com/ipfs/go-ipfs-exchange-offline"
@@ -16,16 +18,16 @@ import (
 	"os"
 )
 
-func NewNode(ctx context.Context, bootstrap []string) (*core.IpfsNode, error) {
-	dir := fmt.Sprintf("%s/.kit/repo", os.Getenv("HOME"))
+func NewNode(ctx context.Context, cfg *kit.Config) (*core.IpfsNode, error) {
+	dir := filepath.Join(cfg.RootDir, ".kit/repo")
 	if !fsrepo.IsInitialized(dir) {
-		cfg, err := config.Init(os.Stdout, 2048)
+		repoCfg, err := config.Init(os.Stdout, 2048)
 		if err != nil {
 			return nil, err
 		}
-		cfg.Bootstrap = bootstrap
+		repoCfg.Bootstrap = cfg.Bootstrap
 
-		err = fsrepo.Init(dir, cfg)
+		err = fsrepo.Init(dir, repoCfg)
 		if err != nil {
 			return nil, err
 		}

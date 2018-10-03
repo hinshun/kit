@@ -4,7 +4,7 @@ BINARIES=$(addprefix bin/,$(COMMANDS))
 
 GOPATH=$(HOME)/kit
 
-.PHONY: plugins export kit
+.PHONY: plugins export kit clean
 
 kit: vendor plugins
 	@echo "$@"
@@ -24,6 +24,10 @@ vendor:
 plugins: $(BINARIES)
 	@echo "$@"
 	@go run ./cmd/publish/main.go
+
+clean:
+	@echo "$@"
+	@rm -rf .kit bin/*
 
 define EXPORTS
 export GOPATH=$(GOPATH)
