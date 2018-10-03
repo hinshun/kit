@@ -3,17 +3,17 @@ package ipfs
 import (
 	"context"
 	"fmt"
-	"gx/ipfs/QmcKwjeebv5SX3VFUGDFa4BNMYhy14RRaCzQP7JN3UQDpB/go-ipfs/core"
-	coreiface "gx/ipfs/QmcKwjeebv5SX3VFUGDFa4BNMYhy14RRaCzQP7JN3UQDpB/go-ipfs/core/coreapi/interface"
-	"gx/ipfs/QmcKwjeebv5SX3VFUGDFa4BNMYhy14RRaCzQP7JN3UQDpB/go-ipfs/core/coreunix"
 	"io/ioutil"
+	"log"
 	"os"
 
-	"github.com/sirupsen/logrus"
+	"github.com/ipfs/go-ipfs/core"
+	coreiface "github.com/ipfs/go-ipfs/core/coreapi/interface"
+	"github.com/ipfs/go-ipfs/core/coreunix"
 )
 
 func SyncCommands(ctx context.Context, api coreiface.CoreAPI, hashes []string) (path []string, err error) {
-	n := NewInMemoryNode(ctx)
+	n := NewInMemoryNode()
 
 	var paths []string
 	for _, hash := range hashes {
@@ -31,7 +31,7 @@ func SyncCommand(ctx context.Context, api coreiface.CoreAPI, n *core.IpfsNode, h
 	if err != nil {
 		return "", err
 	}
-	logrus.Debugf("resolved %s to %s", hash, path)
+	log.Printf("resolved %s to %s\n", hash, path)
 
 	filename = fmt.Sprintf("%s/.kit%s", os.Getenv("HOME"), path)
 	stat, err := os.Stat(filename)
@@ -40,13 +40,13 @@ func SyncCommand(ctx context.Context, api coreiface.CoreAPI, n *core.IpfsNode, h
 	}
 
 	if os.IsNotExist(err) {
-		logrus.Debugf("downloading %s from ipfs...", path)
+		log.Printf("downloading %s from ipfs...\n", path)
 		err = DownloadIPFSObject(ctx, api, path, filename)
 		if err != nil {
 			return "", err
 		}
 	} else {
-		logrus.Debugf("found %s, verifying hash...", filename)
+		log.Printf("found %s, verifying hash...\n", filename)
 		r, err := os.Open(filename)
 		if err != nil {
 			return "", err
@@ -58,7 +58,7 @@ func SyncCommand(ctx context.Context, api coreiface.CoreAPI, n *core.IpfsNode, h
 		}
 
 		if key != stat.Name() {
-			logrus.Debugf("local hash mismatch '%s', downloading %s from ipfs...", key, path)
+			log.Printf("local hash mismatch '%s', downloading %s from ipfs...\n", key, path)
 			err = DownloadIPFSObject(ctx, api, path, filename)
 			if err != nil {
 				return "", err

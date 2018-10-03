@@ -7,7 +7,12 @@ import (
 	"syscall"
 
 	"github.com/hinshun/kit/cmd/kit/command"
-	"github.com/hinshun/kit/interrupt"
+	"github.com/hinshun/kit/control/interrupt"
+	"github.com/hinshun/kit/control/profile"
+)
+
+var (
+	EnvEnableProfiling = "KIT_PROF"
 )
 
 func main() {
@@ -19,6 +24,14 @@ func main() {
 
 func run() error {
 	ctx := context.Background()
+
+	if os.Getenv(EnvEnableProfiling) != "" {
+		p, err := profile.NewProfile()
+		if err != nil {
+			return err
+		}
+		defer p.Close()
+	}
 
 	ih, ctx := interrupt.NewInterruptHandler(ctx, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
 	defer ih.Close()

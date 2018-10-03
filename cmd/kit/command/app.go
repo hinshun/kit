@@ -2,13 +2,14 @@ package command
 
 import (
 	"context"
-	"gx/ipfs/QmcKwjeebv5SX3VFUGDFa4BNMYhy14RRaCzQP7JN3UQDpB/go-ipfs/core/coreapi"
+	"log"
 	"time"
+
+	"github.com/ipfs/go-ipfs/core/coreapi"
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/ipfs"
 	"github.com/hinshun/kit/linker"
-	"github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v2"
 )
 
@@ -16,7 +17,6 @@ func App(ctx context.Context) (*cli.App, error) {
 	app := &cli.App{
 		Name: "kit",
 	}
-	// logrus.SetLevel(logrus.DebugLevel)
 
 	commands, err := loadCommands(ctx)
 	if err != nil {
@@ -38,7 +38,7 @@ func loadCommands(ctx context.Context) ([]*cli.Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	logrus.Debugf("took %s to create bootstrapped ipfs node", time.Now().Sub(before))
+	log.Printf("took %s to create bootstrapped ipfs node\n", time.Now().Sub(before))
 
 	api := coreapi.NewCoreAPI(n)
 
