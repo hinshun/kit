@@ -1,7 +1,3 @@
 bin/*
-.gx/cache
 vendor
-kit.json
-kit
 .kit
-swarm.key
