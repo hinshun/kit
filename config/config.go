@@ -1,4 +1,4 @@
-package kit
+package config
 
 import (
 	"encoding/json"
@@ -6,17 +6,11 @@ import (
 	"os"
 )
 
-var (
-	DefaultRootDir = "~/.kit"
-)
-
 type Config struct {
-	RootDir   string
-	Commands  []string
-	Bootstrap []string
+	Plugins Plugins `json:"plugins,omitempty"`
 }
 
-func ParseConfig(path string) (*Config, error) {
+func New(path string) (*Config, error) {
 	_, err := os.Stat(path)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err

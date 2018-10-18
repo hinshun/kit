@@ -6,9 +6,9 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/hinshun/kit/cmd/kit/command"
-	"github.com/hinshun/kit/control/interrupt"
-	"github.com/hinshun/kit/control/profile"
+	"github.com/hinshun/kit/cli"
+	"github.com/hinshun/kit/system/interrupt"
+	"github.com/hinshun/kit/system/profile"
 )
 
 var (
@@ -40,10 +40,5 @@ func run() error {
 		defer p.Close()
 	}
 
-	app, err := command.App(ctx)
-	if err != nil {
-		return err
-	}
-
-	return app.Run(os.Args)
+	return cli.NewKit().Run(ctx, os.Args)
 }
