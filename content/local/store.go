@@ -1,9 +1,29 @@
-package ipfs
+package local
 
-import "github.com/hinshun/kit/content"
+import (
+	"context"
+
+	"github.com/hinshun/kit/content"
+)
+
+type store struct {
+}
 
 func NewStore() content.Store {
-	return nil
+	return &store{}
+}
+
+func (s *store) Get(ctx context.Context, manifest string) (string, error) {
+	switch manifest {
+	case "/kit/config":
+		return ".kit/namespace.json", nil
+	case "/ipfs/QmUefucWDQKjHyStMAYpavrcAsWud8yvTJgXA973FSkyjV":
+		return ".kit/command.json", nil
+	case "/ipfs/QmAefucWDQKjHyStMAYpavrcAsWud8yvTJgXA973FSkyjV":
+		return "bin/ls", nil
+	}
+
+	return "", nil
 }
 
 // func SyncCommands(ctx context.Context, sh *shell.Shell, cfg *kit.Config) (refs []string, err error) {

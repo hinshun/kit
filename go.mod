@@ -21,7 +21,7 @@ require (
 	github.com/mr-tron/base58 v1.0.0 // indirect
 	github.com/multiformats/go-multiaddr v1.3.0 // indirect
 	github.com/multiformats/go-multiaddr-net v1.6.3 // indirect
-	github.com/multiformats/go-multihash v1.0.8 // indirect
+	github.com/multiformats/go-multihash v1.0.8
 	github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72 // indirect
 	github.com/whyrusleeping/tar-utils v0.0.0-20180509141711-8c6c8ba81d5c // indirect
 	golang.org/x/crypto v0.0.0-20181015023909-0c41d7ab0a0e // indirect

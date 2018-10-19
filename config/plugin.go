@@ -1,46 +1,35 @@
 package config
 
 type Plugin struct {
-	Name    string  `json:"name"`
-	Ref     string  `json:"ref"`
-	Plugins Plugins `json:"plugins,omitempty"`
+	Name     string  `json:"name"`
+	Usage    string  `json:"usage"`
+	Manifest string  `json:"manifest,omitempty"`
+	Plugins  Plugins `json:"plugins,omitempty"`
 }
 
 type Plugins []Plugin
 
-func (p Plugins) Walk(names []string, fn func(Plugin) error) ([]string, error) {
-	var (
-		current = p
-		i       int
-		name    string
-	)
-	for i, name = range names {
-		var found *Plugin
-		for _, plugin := range current {
+func (p Plugins) Walk(names []string, fn func(plugin Plugin, depth int) error) (Plugin, error) {
+	current := Plugin{Plugins: p}
+	for depth, name := range names {
+		found := false
+		for _, plugin := range current.Plugins {
 			if plugin.Name == name {
-				found = &plugin
+				found = true
+				current = plugin
 				break
 			}
 		}
 
-		if found == nil {
+		if !found {
 			break
 		}
 
-		err := fn(*found)
+		err := fn(current, depth)
 		if err != nil {
-			return nil, err
-		}
-
-		current = found.Plugins
-	}
-
-	for _, plugin := range current {
-		err := fn(plugin)
-		if err != nil {
-			return nil, err
+			return Plugin{}, err
 		}
 	}
 
-	return names[i:], nil
+	return current, nil
 }

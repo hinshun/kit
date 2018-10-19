@@ -10,23 +10,19 @@ import (
 
 type command struct{}
 
-var Constructor kit.Constructor = func(cli kit.Cli) (kit.Command, error) {
-	return &command{}
-}
-
-func (c command) Name() string {
-	return "ls"
+var New kit.Constructor = func(cli kit.Cli) (kit.Command, error) {
+	return &command{}, nil
 }
 
 func (c command) Usage() string {
 	return "list directory contents"
 }
 
-func (c command) Args() []kit.Args {
+func (c command) Args() []kit.Arg {
 	return nil
 }
 
-func (c command) Flags() []kit.Flags {
+func (c command) Flags() []kit.Flag {
 	return nil
 }
 

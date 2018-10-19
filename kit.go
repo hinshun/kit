@@ -27,10 +27,9 @@ type Args interface {
 type Flags interface {
 }
 
-type Constructor func(cli Cli) Command
+type Constructor func(cli Cli) (Command, error)
 
 type Command interface {
-	Name() string
 	Usage() string
 	Args() []Arg
 	Flags() []Flag

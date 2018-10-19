@@ -4,26 +4,28 @@ import (
 	"context"
 	"flag"
 	"io/ioutil"
-	"os"
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
-	"github.com/hinshun/kit/content/ipfs"
-	"github.com/hinshun/kit/loader"
+	"github.com/hinshun/kit/content/local"
 )
 
 type Kit struct {
-	loader  *loader.Loader
+	cli     *Cli
+	loader  *Loader
 	flagSet *flag.FlagSet
 	help    *bool
 }
 
 func NewKit() kit.Kit {
+	c := NewCli()
+
 	flagSet := flag.NewFlagSet("kit", flag.ContinueOnError)
 	flagSet.SetOutput(ioutil.Discard)
 
 	return &Kit{
-		loader:  loader.New(ipfs.NewStore()),
+		cli:     c,
+		loader:  NewLoader(c, local.NewStore()),
 		flagSet: flagSet,
 		help:    flagSet.Bool("help", false, "display this help text"),
 	}
@@ -40,14 +42,14 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	command, err := k.loader.Load(ctx, cfg.Plugins, k.flagSet.Args())
+	command, err := k.loader.LoadCommand(ctx, cfg.Plugins, k.flagSet.Args())
 	if err != nil {
 		return err
 	}
 
 	if *k.help {
-		return PrintHelp(os.Stdout, command)
+		return k.cli.PrintHelp([]*Command{command})
 	}
 
-	return command.Run(ctx)
+	return command.Action(ctx)
 }

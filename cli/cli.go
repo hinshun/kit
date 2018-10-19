@@ -1,22 +1,35 @@
 package cli
 
-import "github.com/hinshun/kit"
+import (
+	"os"
 
-type cli struct {
+	"github.com/hinshun/kit"
+)
+
+type Cli struct {
+	Commands []*Command
+
+	stdio kit.Stdio
 }
 
-func NewCli() kit.Cli {
-	return &cli{}
+func NewCli() *Cli {
+	return &Cli{
+		stdio: kit.Stdio{
+			In:  os.Stdin,
+			Out: os.Stdout,
+			Err: os.Stderr,
+		},
+	}
 }
 
-func (c *cli) Stdio() kit.Stdio {
-	return kit.Stdio{}
+func (c *Cli) Stdio() kit.Stdio {
+	return c.stdio
 }
 
-func (c *cli) Args() kit.Args {
+func (c *Cli) Args() kit.Args {
 	return nil
 }
 
-func (c *cli) Flags() kit.Flags {
+func (c *Cli) Flags() kit.Flags {
 	return nil
 }

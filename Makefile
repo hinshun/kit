@@ -10,7 +10,7 @@ kit: bootstrap
 
 FORCE:
 
-bin/%: plugins/% FORCE
+bin/%: contrib/% FORCE
 	@echo "$@"
 	@go build -buildmode=plugin -o $@ ./$<
 

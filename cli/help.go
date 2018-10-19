@@ -1,29 +1,44 @@
 package cli
 
 import (
+	"fmt"
 	"html/template"
-	"io"
+	"strings"
 	"text/tabwriter"
 
-	"github.com/hinshun/kit"
+	"github.com/hinshun/kit/config"
 )
 
-var HelpTemplate = `NAME:
-   {{.Name}}
+var HelpTemplate = `kit
 
-COMMANDS:{{range .Commands}}
-     {{.Name}}{{"\t"}}{{.Usage}}{{end}}
+Commands:{{range .Commands}}
+  {{join .Names " "}} {{joinInputs .Args " "}} {{if .Flags}}[{{joinInputs .Flags " "}}]{{end}}
+    {{.Usage}}{{range .Args}}
+		{{.Name}}: {{.Usage}}{{end}}{{range .Flags}}
+		{{.Name}}: {{.Usage}}{{end}}{{end}}
 `
 
-func PrintHelp(out io.Writer, command kit.Command) error {
-	return HelpPrinter(out, HelpTemplate, nil)
-}
+func (c *Cli) PrintHelp(commands []*Command) error {
+	c.Commands = commands
 
-func HelpPrinter(out io.Writer, templ string, data interface{}) error {
-	w := tabwriter.NewWriter(out, 1, 8, 2, ' ', 0)
-	t := template.Must(template.New("help").Parse(templ))
+	funcs := template.FuncMap{
+		"join": func(strs []string, separator string) string {
+			return strings.Join(strs, separator)
+		},
+		"joinInputs": func(inputs []config.Input, separator string) string {
+			var strs []string
+			for _, input := range inputs {
+				strs = append(strs, fmt.Sprintf("%s", input))
+			}
 
-	err := t.Execute(w, data)
+			return strings.Join(strs, separator)
+		},
+	}
+
+	w := tabwriter.NewWriter(c.stdio.Out, 1, 8, 2, ' ', 0)
+	t := template.Must(template.New("help").Funcs(funcs).Parse(HelpTemplate))
+
+	err := t.Execute(w, c)
 	if err != nil {
 		return err
 	}

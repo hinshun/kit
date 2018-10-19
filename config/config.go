@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	Plugins Plugins `json:"plugins,omitempty"`
+	Plugins Plugins `json:"plugins"`
 }
 
 func New(path string) (*Config, error) {
