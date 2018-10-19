@@ -32,7 +32,7 @@ func NewKit() kit.Kit {
 }
 
 func (k *Kit) Run(ctx context.Context, args []string) error {
-	err := k.flagSet.Parse(args[1:])
+	err := k.flagSet.Parse(args)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	command, err := k.loader.LoadCommand(ctx, cfg.Plugins, k.flagSet.Args())
+	command, err := k.loader.GetCommand(ctx, cfg, k.flagSet.Args())
 	if err != nil {
 		return err
 	}

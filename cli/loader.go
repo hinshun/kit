@@ -24,8 +24,16 @@ func NewLoader(c *Cli, store content.Store) *Loader {
 	}
 }
 
-func (l *Loader) LoadCommand(ctx context.Context, plugins config.Plugins, args []string) (*Command, error) {
-	manifest, depth, err := l.LoadManifest(ctx, plugins, args)
+func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []string) (*Command, error) {
+	plugins := config.Plugins{
+		{
+			Name:     "kit",
+			Manifest: cfg.Manifest,
+			Plugins:  cfg.Plugins,
+		},
+	}
+
+	manifest, depth, err := l.FindManifest(ctx, plugins, args)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +42,7 @@ func (l *Loader) LoadCommand(ctx context.Context, plugins config.Plugins, args [
 	case config.NamespaceManifest:
 		var commands []*Command
 		for _, plugin := range manifest.Plugins {
-			submanifest, err := l.visit(ctx, plugin)
+			submanifest, err := l.GetManifest(ctx, plugin)
 			if err != nil {
 				return nil, err
 			}
@@ -82,7 +90,7 @@ func (l *Loader) LoadCommand(ctx context.Context, plugins config.Plugins, args [
 	return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 }
 
-func (l *Loader) LoadManifest(ctx context.Context, plugins config.Plugins, args []string) (*config.Manifest, int, error) {
+func (l *Loader) FindManifest(ctx context.Context, plugins config.Plugins, args []string) (*config.Manifest, int, error) {
 	if len(plugins) == 0 {
 		return &config.Manifest{
 			Type: config.NamespaceManifest,
@@ -98,7 +106,7 @@ func (l *Loader) LoadManifest(ctx context.Context, plugins config.Plugins, args 
 		return nil, 0, err
 	}
 
-	manifest, err := l.visit(ctx, leaf)
+	manifest, err := l.GetManifest(ctx, leaf)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -106,7 +114,7 @@ func (l *Loader) LoadManifest(ctx context.Context, plugins config.Plugins, args 
 	switch manifest.Type {
 	case config.NamespaceManifest:
 		var depth int
-		manifest, depth, err = l.LoadManifest(ctx, manifest.Plugins, args[leafDepth:])
+		manifest, depth, err = l.FindManifest(ctx, manifest.Plugins, args[leafDepth:])
 		if err != nil {
 			return nil, 0, err
 		}
@@ -119,7 +127,7 @@ func (l *Loader) LoadManifest(ctx context.Context, plugins config.Plugins, args 
 
 	if manifest.Type == config.NamespaceManifest {
 		for _, plugin := range leaf.Plugins {
-			_, err = l.visit(ctx, plugin)
+			_, err = l.GetManifest(ctx, plugin)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -131,14 +139,13 @@ func (l *Loader) LoadManifest(ctx context.Context, plugins config.Plugins, args 
 	return manifest, leafDepth, nil
 }
 
-func (l *Loader) visit(ctx context.Context, plugin config.Plugin) (*config.Manifest, error) {
+func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (*config.Manifest, error) {
 	if plugin.Manifest == "" {
 		return &config.Manifest{
 			Usage: plugin.Usage,
 			Type:  config.NamespaceManifest,
 		}, nil
 	}
-	// fmt.Printf("visit %s\n", plugin.Name)
 
 	path, err := l.store.Get(ctx, plugin.Manifest)
 	if err != nil {

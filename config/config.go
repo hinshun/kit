@@ -6,8 +6,19 @@ import (
 	"os"
 )
 
+var (
+	InitConfig = &Config{
+		Manifest: "/kit/init",
+	}
+
+	BootstrapConfig = &Config{
+		Manifest: "/kit/bootstrap",
+	}
+)
+
 type Config struct {
-	Plugins Plugins `json:"plugins"`
+	Manifest string  `json:"manifest,omitempty"`
+	Plugins  Plugins `json:"plugins"`
 }
 
 func New(path string) (*Config, error) {
