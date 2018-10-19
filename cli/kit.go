@@ -47,7 +47,7 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	if *k.help {
+	if *k.help && len(command.Names) > 0 {
 		return k.cli.PrintHelp([]*Command{command})
 	}
 
