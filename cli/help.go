@@ -10,7 +10,10 @@ import (
 	"github.com/hinshun/kit/config"
 )
 
-var HelpTemplate = `kit
+var HelpTemplate = `{{header "Usage:"}}
+  kit - Composable command-line toolkit.
+
+	kit {{flag "global options"}} {{name "command"}} {{flag "command options"}}
 
 {{header "Commands:"}}{{range .Commands}}
   {{join (names .Names) " "}} {{join (args .Args) " "}} {{if .Flags}}{{join (flags .Flags) " "}}{{end}}
