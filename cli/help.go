@@ -1,10 +1,9 @@
 package cli
 
 import (
-	"fmt"
-	"html/template"
 	"strings"
 	"text/tabwriter"
+	"text/template"
 
 	"github.com/fatih/color"
 	"github.com/hinshun/kit/config"
@@ -15,8 +14,8 @@ var HelpTemplate = `kit
 {{header "Commands:"}}{{range .Commands}}
   {{join (names .Names) " "}} {{join (args .Args) " "}} {{if .Flags}}[{{join (flags .Flags) " "}}]{{end}}
     {{.Usage}}{{range .Args}}
-		{{arg .Name}}: {{.Usage}}{{end}}{{range .Flags}}
-		{{flag .Name}}: {{.Usage}}{{end}}{{end}}
+		{{arg .Type}}: {{.Usage}}{{end}}{{range .Flags}}
+		{{flag .Type}}: {{.Usage}}{{end}}{{end}}
 `
 
 func (c *Cli) PrintHelp(commands []*Command) error {
@@ -72,7 +71,7 @@ func decorateArgs(inputs []config.Input) []string {
 }
 
 func decorateArg(arg string) string {
-	return fmt.Sprintf("<%s>", color.New(color.FgCyan).Sprint(arg))
+	return color.New(color.FgYellow).Sprintf("<%s>", arg)
 }
 
 func decorateFlags(inputs []config.Input) []string {
