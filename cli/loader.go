@@ -48,7 +48,7 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			}
 
 			commands = append(commands, &Command{
-				Names: append(args[:depth], plugin.Name),
+				Names: append(args[1:depth], plugin.Name),
 				Usage: submanifest.Usage,
 				Args:  submanifest.Args,
 				Flags: submanifest.Flags,
@@ -77,7 +77,7 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 		}
 
 		return &Command{
-			Names: args[:depth],
+			Names: args[1:depth],
 			Usage: manifest.Usage,
 			Args:  manifest.Args,
 			Flags: manifest.Flags,

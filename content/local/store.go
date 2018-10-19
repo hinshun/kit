@@ -15,12 +15,20 @@ func NewStore() content.Store {
 
 func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 	switch manifest {
+	case "/kit":
+		return ".kit/kit.json", nil
+	case "/kit/init":
+		return ".kit/init.json", nil
+	case "/kit/bootstrap":
+		return ".kit/bootstrap.json", nil
 	case "/kit/config":
 		return ".kit/namespace.json", nil
 	case "/ipfs/QmUefucWDQKjHyStMAYpavrcAsWud8yvTJgXA973FSkyjV":
 		return ".kit/command.json", nil
 	case "/ipfs/QmAefucWDQKjHyStMAYpavrcAsWud8yvTJgXA973FSkyjV":
 		return "bin/ls", nil
+	case "/ipfs/QmBefucWDQKjHyStMAYpavrcAsWud8yvTJgXA973FSkyjV":
+		return "bin/init", nil
 	}
 
 	return "", nil

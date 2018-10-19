@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	InitConfig = &Config{
-		Manifest: "/kit/init",
+	InitConfig = Config{
+		Manifest: "/kit",
 	}
 
-	BootstrapConfig = &Config{
+	BootstrapConfig = Config{
 		Manifest: "/kit/bootstrap",
 	}
 )
@@ -27,7 +27,7 @@ func New(path string) (*Config, error) {
 		return nil, err
 	}
 
-	var cfg Config
+	cfg := InitConfig
 	if !os.IsNotExist(err) {
 		data, err := ioutil.ReadFile(path)
 		if err != nil {

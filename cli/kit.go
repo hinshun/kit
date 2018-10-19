@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
@@ -37,7 +39,8 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	cfg, err := config.New(".kit/config.json")
+	kitDir := filepath.Join(os.Getenv("HOME"), ".kit")
+	cfg, err := config.New(filepath.Join(kitDir, "config.json"))
 	if err != nil {
 		return err
 	}
