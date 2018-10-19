@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 	"text/tabwriter"
 	"text/template"
@@ -12,15 +13,13 @@ import (
 var HelpTemplate = `kit
 
 {{header "Commands:"}}{{range .Commands}}
-  {{join (names .Names) " "}} {{join (args .Args) " "}} {{if .Flags}}[{{join (flags .Flags) " "}}]{{end}}
+  {{join (names .Names) " "}} {{join (args .Args) " "}} {{if .Flags}}{{join (flags .Flags) " "}}{{end}}
     {{.Usage}}{{range .Args}}
 		{{arg .Type}}: {{.Usage}}{{end}}{{range .Flags}}
 		{{flag .Type}}: {{.Usage}}{{end}}{{end}}
 `
 
 func (c *Cli) PrintHelp(commands []*Command) error {
-	c.Commands = commands
-
 	funcs := template.FuncMap{
 		"join":   join,
 		"header": decorateHeader,
@@ -35,6 +34,7 @@ func (c *Cli) PrintHelp(commands []*Command) error {
 	w := tabwriter.NewWriter(c.stdio.Out, 1, 8, 2, ' ', 0)
 	t := template.Must(template.New("help").Funcs(funcs).Parse(HelpTemplate))
 
+	c.Commands = commands
 	err := t.Execute(w, c)
 	if err != nil {
 		return err
@@ -83,5 +83,5 @@ func decorateFlags(inputs []config.Input) []string {
 }
 
 func decorateFlag(flag string) string {
-	return color.New(color.FgGreen).Sprint(flag)
+	return fmt.Sprintf("[%s]", color.New(color.FgGreen).Sprint(flag))
 }
