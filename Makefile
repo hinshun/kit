@@ -1,4 +1,4 @@
-COMMANDS=ls
+COMMANDS=ls init config/add
 
 BINARIES=$(addprefix bin/,$(COMMANDS))
 
@@ -13,6 +13,8 @@ FORCE:
 bin/%: core/% FORCE
 	@echo "$@"
 	@go build -buildmode=plugin -o $@ ./$<
+
+binaries: $(BINARIES)
 
 bootstrap: $(BINARIES)
 	@echo "$@"

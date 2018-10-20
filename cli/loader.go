@@ -33,6 +33,7 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 		},
 	}
 
+	args = append([]string{"kit"}, args...)
 	manifest, depth, err := l.FindManifest(ctx, plugins, args)
 	if err != nil {
 		return nil, err
@@ -47,8 +48,12 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 				return nil, err
 			}
 
+			names := make([]string, len(args[1:depth])+1)
+			copy(names, args[1:depth])
+			names[len(names)-1] = plugin.Name
+
 			commands = append(commands, &Command{
-				Names: append(args[1:depth], plugin.Name),
+				Names: names,
 				Usage: submanifest.Usage,
 				Args:  submanifest.Args,
 				Flags: submanifest.Flags,

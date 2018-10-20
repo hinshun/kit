@@ -34,7 +34,7 @@ func NewKit() kit.Kit {
 }
 
 func (k *Kit) Run(ctx context.Context, args []string) error {
-	err := k.flagSet.Parse(args)
+	err := k.flagSet.Parse(args[1:])
 	if err != nil {
 		return err
 	}

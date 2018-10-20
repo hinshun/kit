@@ -13,7 +13,7 @@ import (
 
 type command struct{}
 
-var New kit.Constructor = func(cli kit.Cli) (kit.Command, error) {
+var New kit.Constructor = func(c kit.Cli) (kit.Command, error) {
 	return &command{}, nil
 }
 
