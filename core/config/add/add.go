@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"sort"
 	"strings"
 
@@ -88,7 +87,6 @@ func (c *command) Run(ctx context.Context) error {
 }
 
 func AddPlugin(ctx context.Context, names []string, manifest, usage string, plugin config.Plugin) (config.Plugin, error) {
-	log.Printf("add plugin '%s' with names '%s'", plugin.Name, names)
 	if len(names) == 0 {
 		return plugin, nil
 	}
@@ -106,7 +104,6 @@ func AddPlugin(ctx context.Context, names []string, manifest, usage string, plug
 				return plugin, fmt.Errorf("conflict")
 			}
 
-			log.Println("diving in")
 			replace, err := AddPlugin(ctx, names[1:], manifest, usage, child)
 			if err != nil {
 				return plugin, err
@@ -117,7 +114,6 @@ func AddPlugin(ctx context.Context, names []string, manifest, usage string, plug
 		}
 	}
 
-	log.Println("adding new namespace")
 	child, err := AddPlugin(ctx, names[1:], manifest, usage, config.Plugin{
 		Name: names[0],
 	})
@@ -131,7 +127,6 @@ func AddPlugin(ctx context.Context, names []string, manifest, usage string, plug
 		child.Usage = usage
 	}
 
-	log.Printf("after new namespace plugin '%s'", plugin.Name)
 	plugin.Plugins = append(plugin.Plugins, child)
 
 	// Lexicographically sort plugins by name to produce a deterministic config.
