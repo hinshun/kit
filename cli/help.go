@@ -12,13 +12,13 @@ import (
 var HelpTemplate = `{{header "Usage:"}}
   kit - Composable command-line toolkit.
 
-	kit {{flag "global options"}} {{command "command"}} {{flag "command options"}}
+	kit {{globalFlag "global options"}} {{command "command"}} {{globalFlag "command options"}}
 
 {{header "Commands:"}}{{range .Commands}}
-  {{join (commandPath .CommandPath) " "}} {{join (args .Args) " "}} {{if .Flags}}{{join (flags .Flags) " "}}{{end}}
-    {{.Usage}}{{range .Args}}
-		{{arg .Type}}: {{.Usage}}{{end}}{{range .Flags}}
-		{{flag .Type}}: {{.Usage}}{{end}}{{end}}{{if .UsageError}}
+  {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{join (args .Args) " "}}{{end}}
+    {{.Usage}}{{range .Flags}}
+		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
+		{{arg .Type}}: {{.Usage}}{{end}}{{end}}{{if .UsageError}}
 
 {{usageError "Usage error:"}}
   {{.UsageError}}{{end}}
@@ -33,6 +33,7 @@ func (c *Cli) PrintHelp(commands []*Command) error {
 		"command":     c.DecorateCommand,
 		"args":        c.DecorateArgs,
 		"arg":         c.DecorateArg,
+		"globalFlag":  c.DecorateGlobalFlag,
 		"flags":       c.DecorateFlags,
 		"flag":        c.DecorateFlag,
 	}
@@ -72,10 +73,10 @@ func (c *Cli) DecorateCommand(command string) string {
 	return c.commandColor.Sprint(command)
 }
 
-func (c *Cli) DecorateArgs(inputs []config.Input) []string {
+func (c *Cli) DecorateArgs(inputs []config.Arg) []string {
 	var args []string
 	for _, input := range inputs {
-		args = append(args, c.DecorateArg(input.String()))
+		args = append(args, c.DecorateArg(input.Type))
 	}
 	return args
 }
@@ -84,14 +85,18 @@ func (c *Cli) DecorateArg(arg string) string {
 	return c.argColor.Sprintf("<%s>", arg)
 }
 
-func (c *Cli) DecorateFlags(inputs []config.Input) []string {
+func (c *Cli) DecorateGlobalFlag(flag string) string {
+	return fmt.Sprintf("[%s]", c.flagColor.Sprint(flag))
+}
+
+func (c *Cli) DecorateFlags(inputs []config.Flag) []string {
 	var flags []string
 	for _, input := range inputs {
-		flags = append(flags, c.DecorateFlag(input.String()))
+		flags = append(flags, c.DecorateFlag(input))
 	}
 	return flags
 }
 
-func (c *Cli) DecorateFlag(flag string) string {
-	return fmt.Sprintf("[%s]", c.flagColor.Sprint(flag))
+func (c *Cli) DecorateFlag(flag config.Flag) string {
+	return fmt.Sprintf("[%s]", c.flagColor.Sprintf("--%s <%s>", flag.Name, flag.Type))
 }

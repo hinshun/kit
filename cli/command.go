@@ -14,15 +14,20 @@ import (
 type Command struct {
 	CommandPath []string
 	Usage       string
-	Args        []config.Input
-	Flags       []config.Input
+	Args        []config.Arg
+	Flags       []config.Flag
 	Action      func(ctx context.Context) error
 }
 
 func (c *Cli) Apply(cliCmd *Command, kitCmd kit.Command, args []string) error {
 	name := cliCmd.CommandPath[len(cliCmd.CommandPath)-1]
+
 	flagSet := flag.NewFlagSet(name, flag.ContinueOnError)
 	flagSet.SetOutput(ioutil.Discard)
+
+	for _, flag := range kitCmd.Flags() {
+		flag.Set(flagSet)
+	}
 
 	err := flagSet.Parse(args)
 	if err != nil {

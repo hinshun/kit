@@ -2,7 +2,7 @@ package config
 
 type Plugin struct {
 	Name     string  `json:"name"`
-	Usage    string  `json:"usage"`
+	Usage    string  `json:"usage,omitempty"`
 	Manifest string  `json:"manifest,omitempty"`
 	Plugins  Plugins `json:"plugins,omitempty"`
 }

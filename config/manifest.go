@@ -9,9 +9,9 @@ type Manifest struct {
 	Plugins Plugins `json:"plugins,omitempty"`
 
 	// Command only fields.
-	Hash  string  `json:"hash,omitempty"`
-	Args  []Input `json:"args,omitempty"`
-	Flags []Input `json:"flags,omitempty"`
+	Hash  string `json:"hash,omitempty"`
+	Args  []Arg  `json:"args,omitempty"`
+	Flags []Flag `json:"flags,omitempty"`
 }
 
 type ManifestType string
@@ -21,11 +21,13 @@ var (
 	NamespaceManifest ManifestType = "namespace"
 )
 
-type Input struct {
+type Arg struct {
 	Type  string `json:"type"`
 	Usage string `json:"usage"`
 }
 
-func (i Input) String() string {
-	return i.Type
+type Flag struct {
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Usage string `json:"usage"`
 }
