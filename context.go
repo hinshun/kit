@@ -2,9 +2,12 @@ package kit
 
 import (
 	"context"
+
+	"github.com/hinshun/kit/config"
 )
 
 type KitAPI interface {
+	GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error)
 	ConfigPath() string
 }
 

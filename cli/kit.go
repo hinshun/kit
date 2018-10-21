@@ -9,16 +9,12 @@ import (
 )
 
 type Kit struct {
-	cli    *Cli
-	loader *Loader
+	cli *Cli
 }
 
 func NewKit() *Kit {
-	c := NewCli()
-
 	return &Kit{
-		cli:    c,
-		loader: NewLoader(c, local.NewStore()),
+		cli: NewCli(NewLoader(local.NewStore())),
 	}
 }
 
@@ -33,9 +29,29 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	command, err := k.loader.GetCommand(ctx, cfg, k.cli.flagSet.Args())
+	plugin := config.Plugin{
+		Name:     "kit",
+		Manifest: cfg.Manifest,
+		Plugins:  cfg.Plugins,
+	}
+	command, err := k.cli.GetCommand(ctx, plugin, k.cli.flagSet.Args())
 	if err != nil {
 		return err
+	}
+
+	if !*k.cli.help {
+		err = command.Verify(k.cli)
+		if err != nil {
+			k.cli.UsageError = err
+		}
+	}
+
+	if *k.cli.help || k.cli.UsageError != nil || command.Action == nil {
+		commands := command.Commands
+		if len(commands) == 0 {
+			commands = []*Command{command}
+		}
+		return k.cli.PrintHelp(commands)
 	}
 
 	ctx = kit.WithKit(ctx, k.cli)

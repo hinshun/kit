@@ -13,24 +13,16 @@ import (
 )
 
 type Loader struct {
-	cli   *Cli
 	store content.Store
 }
 
-func NewLoader(c *Cli, store content.Store) *Loader {
+func NewLoader(store content.Store) *Loader {
 	return &Loader{
-		cli:   c,
 		store: store,
 	}
 }
 
-func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []string) (*Command, error) {
-	plugin := config.Plugin{
-		Name:     "kit",
-		Manifest: cfg.Manifest,
-		Plugins:  cfg.Plugins,
-	}
-
+func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []string) (*Command, error) {
 	leaf, depth, err := l.FindPlugin(ctx, plugin, args)
 	if err != nil {
 		return nil, err
@@ -68,25 +60,18 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			})
 		}
 
-		// For usage errors in the root namespace of kit, we should display "kit"
-		// instead of an empty path.
+		// For usage errors in the root namespace, set the root plugin's name.
 		commandPath := args[:depth]
 		if len(commandPath) == 0 {
-			commandPath = []string{"kit"}
+			commandPath = []string{plugin.Name}
 		}
 
 		cliCmd := &Command{
 			CommandPath: commandPath,
-			Action: func(ctx context.Context) error {
-				return l.cli.PrintHelp(commands)
-			},
+			Commands:    commands,
 		}
 
-		err := l.cli.VerifyNamespace(cliCmd, args, depth)
-		if err != nil {
-			l.cli.UsageError = err
-		}
-
+		cliCmd.Verify = VerifyNamespace(cliCmd, args, depth)
 		return cliCmd, nil
 	case config.CommandManifest:
 		path, err := l.store.Get(ctx, manifest.Hash)
@@ -115,20 +100,12 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			Usage:       usage,
 			Args:        manifest.Args,
 			Flags:       manifest.Flags,
+			Action: func(ctx context.Context) error {
+				return kitCmd.Run(ctx)
+			},
 		}
 
-		err = l.cli.VerifyCommand(cliCmd, kitCmd, args[depth:])
-		if err != nil {
-			l.cli.UsageError = err
-		}
-
-		cliCmd.Action = func(ctx context.Context) error {
-			if *l.cli.help || l.cli.UsageError != nil {
-				return l.cli.PrintHelp([]*Command{cliCmd})
-			}
-			return kitCmd.Run(ctx)
-		}
-
+		cliCmd.Verify = VerifyCommand(cliCmd, kitCmd, args[depth:])
 		return cliCmd, nil
 	}
 
@@ -192,9 +169,9 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 	}
 }
 
-func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (*config.Manifest, error) {
+func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error) {
 	if plugin.Manifest == "" {
-		return &config.Manifest{
+		return config.Manifest{
 			Usage: plugin.Usage,
 			Type:  config.NamespaceManifest,
 		}, nil
@@ -202,21 +179,21 @@ func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (*config
 
 	path, err := l.store.Get(ctx, plugin.Manifest)
 	if err != nil {
-		return nil, err
+		return config.Manifest{}, err
 	}
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return config.Manifest{}, err
 	}
 
 	var manifest config.Manifest
 	err = json.Unmarshal(data, &manifest)
 	if err != nil {
-		return nil, err
+		return config.Manifest{}, err
 	}
 
-	return &manifest, nil
+	return manifest, nil
 }
 
 func OpenConstructor(path string) (kit.Constructor, error) {
