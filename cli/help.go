@@ -15,7 +15,7 @@ var HelpTemplate = `{{header "Usage:"}}
 	kit {{globalFlag "global options"}} {{command "command"}} {{globalFlag "command options"}}
 
 {{header "Commands:"}}{{range .Commands}}
-  {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{join (args .Args) " "}}{{end}}
+  {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
     {{.Usage}}{{range .Flags}}
 		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
 		{{arg .Type}}: {{.Usage}}{{end}}{{end}}{{if .UsageError}}

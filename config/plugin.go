@@ -1,5 +1,10 @@
 package config
 
+import (
+	"log"
+	"strings"
+)
+
 type Plugin struct {
 	Name     string  `json:"name"`
 	Usage    string  `json:"usage,omitempty"`
@@ -9,27 +14,38 @@ type Plugin struct {
 
 type Plugins []Plugin
 
-func (p Plugins) Walk(names []string, fn func(plugin Plugin, depth int) error) (Plugin, error) {
-	current := Plugin{Plugins: p}
-	for depth, name := range names {
-		found := false
-		for _, plugin := range current.Plugins {
-			if plugin.Name == name {
-				found = true
-				current = plugin
-				break
-			}
-		}
-
-		if !found {
-			break
-		}
-
-		err := fn(current, depth)
-		if err != nil {
-			return Plugin{}, err
-		}
+func (p Plugins) Merge(plugins Plugins) Plugins {
+	indexByName := make(map[string]int)
+	for i, plugin := range p {
+		indexByName[plugin.Name] = i
 	}
 
-	return current, nil
+	for _, plugin := range plugins {
+		i, ok := indexByName[plugin.Name]
+		if !ok {
+			p = append(p, plugin)
+			continue
+		}
+
+		plugin.Plugins = p[i].Plugins.Merge(plugin.Plugins)
+		p[i] = plugin
+	}
+
+	return p
+}
+
+func (p Plugins) Print() {
+	p.printTree(0)
+}
+
+func (p Plugins) printTree(depth int) {
+	for _, plugin := range p {
+		var spaces []string
+		for i := 0; i < depth; i++ {
+			spaces = append(spaces, "\t")
+		}
+
+		log.Printf("%s%s\n", strings.Join(spaces, ""), plugin.Name)
+		plugin.Plugins.printTree(depth + 1)
+	}
 }

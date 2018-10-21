@@ -25,16 +25,18 @@ func NewLoader(c *Cli, store content.Store) *Loader {
 }
 
 func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []string) (*Command, error) {
-	plugins := config.Plugins{
-		{
-			Name:     "kit",
-			Manifest: cfg.Manifest,
-			Plugins:  cfg.Plugins,
-		},
+	plugin := config.Plugin{
+		Name:     "kit",
+		Manifest: cfg.Manifest,
+		Plugins:  cfg.Plugins,
 	}
 
-	args = append([]string{"kit"}, args...)
-	manifest, depth, err := l.FindManifest(ctx, plugins, args)
+	leaf, depth, err := l.FindPlugin(ctx, plugin, args)
+	if err != nil {
+		return nil, err
+	}
+
+	manifest, err := l.GetManifest(ctx, leaf)
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +44,14 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 	switch manifest.Type {
 	case config.NamespaceManifest:
 		var commands []*Command
-		for _, plugin := range manifest.Plugins {
+		for _, plugin := range leaf.Plugins {
 			submanifest, err := l.GetManifest(ctx, plugin)
 			if err != nil {
 				return nil, err
 			}
 
-			names := make([]string, len(args[1:depth])+1)
-			copy(names, args[1:depth])
+			names := make([]string, len(args[:depth])+1)
+			copy(names, args[:depth])
 			names[len(names)-1] = plugin.Name
 
 			commands = append(commands, &Command{
@@ -82,7 +84,7 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 		}
 
 		cliCmd := &Command{
-			CommandPath: args[1:depth],
+			CommandPath: args[:depth],
 			Usage:       manifest.Usage,
 			Args:        manifest.Args,
 			Flags:       manifest.Flags,
@@ -102,53 +104,61 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 	return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 }
 
-func (l *Loader) FindManifest(ctx context.Context, plugins config.Plugins, args []string) (*config.Manifest, int, error) {
-	if len(plugins) == 0 {
-		return &config.Manifest{
-			Type: config.NamespaceManifest,
-		}, 0, nil
+func (l *Loader) FindPlugin(ctx context.Context, plugin config.Plugin, args []string) (config.Plugin, int, error) {
+	return l.findPlugin(ctx, plugin, args, 0)
+}
+
+func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []string, depth int) (config.Plugin, int, error) {
+	// Load the base manifest and merge with user defined plugins.
+	manifest, err := l.GetManifest(ctx, plugin)
+	if err != nil {
+		return plugin, depth, err
 	}
 
-	leafDepth := 0
-	leaf, err := plugins.Walk(args, func(plugin config.Plugin, depth int) error {
-		leafDepth = depth + 1
-		return nil
-	})
-	if err != nil {
-		return nil, 0, err
+	plugin.Plugins = manifest.Plugins.Merge(plugin.Plugins)
+
+	// If there are no more args, then we found our plugin without extra args.
+	if len(args) == depth {
+		return plugin, depth, nil
 	}
 
-	manifest, err := l.GetManifest(ctx, leaf)
+	// Find the plugin matching the next arg.
+	index := -1
+	for i, p := range plugin.Plugins {
+		if args[depth] == p.Name {
+			index = i
+			break
+		}
+	}
+
+	// No plugin matched with the next arg, the rest of args are for the command.
+	if index == -1 {
+		return plugin, depth, nil
+	}
+
+	// We matched one level deeper in args.
+	depth++
+
+	child := plugin.Plugins[index]
+	manifest, err = l.GetManifest(ctx, child)
 	if err != nil {
-		return nil, 0, err
+		return child, depth, err
 	}
 
 	switch manifest.Type {
 	case config.NamespaceManifest:
-		var depth int
-		manifest, depth, err = l.FindManifest(ctx, manifest.Plugins, args[leafDepth:])
-		if err != nil {
-			return nil, 0, err
+		plugin = config.Plugin{
+			Plugins: manifest.Plugins,
 		}
-		leafDepth += depth
+
+		// If it's a namespace, there are more possible matches.
+		return l.findPlugin(ctx, child, args, depth)
 	case config.CommandManifest:
-		return manifest, leafDepth, nil
+		// If it's a command, the rest of args are for the command.
+		return child, depth, nil
 	default:
-		return nil, 0, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
+		return child, 0, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 	}
-
-	if manifest.Type == config.NamespaceManifest {
-		for _, plugin := range leaf.Plugins {
-			_, err = l.GetManifest(ctx, plugin)
-			if err != nil {
-				return nil, 0, err
-			}
-
-			manifest.Plugins = append(manifest.Plugins, plugin)
-		}
-	}
-
-	return manifest, leafDepth, nil
 }
 
 func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (*config.Manifest, error) {

@@ -11,7 +11,7 @@ func main() {
 // 	cfg := &kit.Config{}
 
 // 	sh := shell.NewLocalShell()
-// 	err := filepath.Walk("./bin", func(path string, info os.FileInfo, err error) error {
+// 	err := filepath.galk("./bin", func(path string, info os.FileInfo, err error) error {
 // 		if info.IsDir() {
 // 			return nil
 // 		}
