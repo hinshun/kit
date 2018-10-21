@@ -54,9 +54,15 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			copy(names, args[:depth])
 			names[len(names)-1] = plugin.Name
 
+			// Override usage with user-defined usage if available.
+			usage := submanifest.Usage
+			if plugin.Usage != "" {
+				usage = plugin.Usage
+			}
+
 			commands = append(commands, &Command{
 				CommandPath: names,
-				Usage:       submanifest.Usage,
+				Usage:       usage,
 				Args:        submanifest.Args,
 				Flags:       submanifest.Flags,
 			})
@@ -98,9 +104,15 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			return nil, err
 		}
 
+		// Override usage with user-defined usage if available.
+		usage := manifest.Usage
+		if leaf.Usage != "" {
+			usage = leaf.Usage
+		}
+
 		cliCmd := &Command{
 			CommandPath: args[:depth],
-			Usage:       manifest.Usage,
+			Usage:       usage,
 			Args:        manifest.Args,
 			Flags:       manifest.Flags,
 		}
