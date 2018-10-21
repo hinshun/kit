@@ -14,19 +14,19 @@ var New kit.Constructor = func() (kit.Command, error) {
 	return &command{}, nil
 }
 
-func (c command) Usage() string {
+func (c *command) Usage() string {
 	return "list directory contents"
 }
 
-func (c command) Args() []kit.Arg {
+func (c *command) Args() []kit.Arg {
 	return nil
 }
 
-func (c command) Flags() []kit.Flag {
+func (c *command) Flags() []kit.Flag {
 	return nil
 }
 
-func (c command) Run(ctx context.Context) error {
+func (c *command) Run(ctx context.Context) error {
 	cmd := exec.Command("ls", "-la")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

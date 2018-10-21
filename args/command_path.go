@@ -10,12 +10,12 @@ import (
 var CommandPathPattern = regexp.MustCompile(`/(\w+/)*(\w+\?)?`)
 
 type CommandPathArg struct {
-	path  *string
 	usage string
+	path  *string
 }
 
-func NewCommandPathArg(path *string, usage string) *CommandPathArg {
-	return &CommandPathArg{path, usage}
+func NewCommandPathArg(usage string, path *string) *CommandPathArg {
+	return &CommandPathArg{usage, path}
 }
 
 func (a *CommandPathArg) Type() string {

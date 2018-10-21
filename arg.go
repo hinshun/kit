@@ -10,10 +10,10 @@ type Arg interface {
 	Set(v string) error
 }
 
-func CommandPathArg(path *string, usage string) Arg {
-	return args.NewCommandPathArg(path, usage)
+func CommandPathArg(usage string, path *string) Arg {
+	return args.NewCommandPathArg(usage, path)
 }
 
-func ManifestArg(manifest *string, usage string) Arg {
-	return args.NewManifestArg(manifest, usage)
+func ManifestArg(usage string, manifest *string) Arg {
+	return args.NewManifestArg(usage, manifest)
 }

@@ -1,21 +1,12 @@
 package args
 
-import (
-	"fmt"
-	"regexp"
-
-	"github.com/fatih/color"
-)
-
-var ManifestPattern = regexp.MustCompile(`/kit|ipfs/(\w+/)*(\w+\?)?`)
-
 type ManifestArg struct {
-	manifest *string
 	usage    string
+	manifest *string
 }
 
-func NewManifestArg(manifest *string, usage string) *ManifestArg {
-	return &ManifestArg{manifest, usage}
+func NewManifestArg(usage string, manifest *string) *ManifestArg {
+	return &ManifestArg{usage, manifest}
 }
 
 func (a *ManifestArg) Type() string {
@@ -27,10 +18,6 @@ func (a *ManifestArg) Usage() string {
 }
 
 func (a *ManifestArg) Set(v string) error {
-	if !ManifestPattern.MatchString(v) {
-		regex := color.New(color.FgBlue).Sprintf("%s", ManifestPattern.String())
-		return fmt.Errorf("did not match regex %s", regex)
-	}
 	*a.manifest = v
 	return nil
 }
