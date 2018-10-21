@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"sort"
 	"strings"
 
@@ -68,10 +69,14 @@ func (c *command) Run(ctx context.Context) error {
 	} else {
 		c.path = strings.Trim(c.path, "/")
 		names := strings.Split(c.path, "/")
-		cfg.Plugins, err = AddPlugin(names, cfg.Plugins, c.manifest, c.usage)
+		plugin, err := AddPlugin(ctx, names, c.manifest, c.usage, config.Plugin{
+			Manifest: cfg.Manifest,
+			Plugins:  cfg.Plugins,
+		})
 		if err != nil {
 			return err
 		}
+		cfg.Plugins = plugin.Plugins
 	}
 
 	cfgJson, err := json.MarshalIndent(&cfg, "", "    ")
@@ -82,46 +87,57 @@ func (c *command) Run(ctx context.Context) error {
 	return ioutil.WriteFile(configPath, cfgJson, 0664)
 }
 
-func AddPlugin(names []string, plugins config.Plugins, manifest, usage string) (config.Plugins, error) {
+func AddPlugin(ctx context.Context, names []string, manifest, usage string, plugin config.Plugin) (config.Plugin, error) {
+	log.Printf("add plugin '%s' with names '%s'", plugin.Name, names)
 	if len(names) == 0 {
-		return nil, nil
+		return plugin, nil
 	}
 
-	var err error
-	for i, plugin := range plugins {
-		if plugin.Name == names[0] {
+	// Load the base manifest and merge with user defined plugins.
+	msft, err := kit.Kit(ctx).GetManifest(ctx, plugin)
+	if err != nil {
+		return plugin, err
+	}
+	plugin.Plugins = msft.Plugins.Merge(plugin.Plugins)
+
+	for i, child := range plugin.Plugins {
+		if child.Name == names[0] {
 			if len(names) == 1 {
-				return nil, fmt.Errorf("conflict")
+				return plugin, fmt.Errorf("conflict")
 			}
 
-			plugins[i].Plugins, err = AddPlugin(names[1:], plugin.Plugins, manifest, usage)
+			log.Println("diving in")
+			replace, err := AddPlugin(ctx, names[1:], manifest, usage, child)
 			if err != nil {
-				return nil, err
+				return plugin, err
 			}
-			return plugins, nil
+
+			plugin.Plugins[i] = replace
+			return plugin, nil
 		}
 	}
 
-	plugin := config.Plugin{
+	log.Println("adding new namespace")
+	child, err := AddPlugin(ctx, names[1:], manifest, usage, config.Plugin{
 		Name: names[0],
+	})
+	if err != nil {
+		return plugin, err
 	}
 
-	if len(names) == 1 {
-		plugin.Manifest = manifest
-		plugin.Usage = usage
-	} else {
-		plugin.Plugins, err = AddPlugin(names[1:], nil, manifest, usage)
-		if err != nil {
-			return nil, err
-		}
+	// Arrived at the leaf node, which is the plugin you are intending to add.
+	if len(child.Plugins) == 0 {
+		child.Manifest = manifest
+		child.Usage = usage
 	}
 
-	plugins = append(plugins, plugin)
+	log.Printf("after new namespace plugin '%s'", plugin.Name)
+	plugin.Plugins = append(plugin.Plugins, child)
 
 	// Lexicographically sort plugins by name to produce a deterministic config.
-	sort.SliceStable(plugins, func(i, j int) bool {
-		return plugins[i].Name < plugins[j].Name
+	sort.SliceStable(plugin.Plugins, func(i, j int) bool {
+		return plugin.Plugins[i].Name < plugin.Plugins[j].Name
 	})
 
-	return plugins, nil
+	return plugin, nil
 }
