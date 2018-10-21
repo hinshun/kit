@@ -10,7 +10,7 @@ import (
 
 type command struct{}
 
-var New kit.Constructor = func(cli kit.Cli) (kit.Command, error) {
+var New kit.Constructor = func() (kit.Command, error) {
 	return &command{}, nil
 }
 

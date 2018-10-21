@@ -53,10 +53,10 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			names[len(names)-1] = plugin.Name
 
 			commands = append(commands, &Command{
-				Names: names,
-				Usage: submanifest.Usage,
-				Args:  submanifest.Args,
-				Flags: submanifest.Flags,
+				CommandPath: names,
+				Usage:       submanifest.Usage,
+				Args:        submanifest.Args,
+				Flags:       submanifest.Flags,
 			})
 		}
 
@@ -76,20 +76,27 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			return nil, err
 		}
 
-		command, err := constructor(l.cli)
+		kitCmd, err := constructor()
 		if err != nil {
 			return nil, err
 		}
 
-		return &Command{
-			Names: args[1:depth],
-			Usage: manifest.Usage,
-			Args:  manifest.Args,
-			Flags: manifest.Flags,
+		cliCmd := &Command{
+			CommandPath: args[1:depth],
+			Usage:       manifest.Usage,
+			Args:        manifest.Args,
+			Flags:       manifest.Flags,
 			Action: func(ctx context.Context) error {
-				return command.Run(ctx)
+				return kitCmd.Run(ctx)
 			},
-		}, nil
+		}
+
+		err = l.cli.Apply(cliCmd, kitCmd, args[depth:])
+		if err != nil {
+			l.cli.UsageError = err
+		}
+
+		return cliCmd, nil
 	}
 
 	return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)

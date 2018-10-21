@@ -8,7 +8,7 @@ import (
 
 var (
 	InitConfig = Config{
-		Manifest: "/kit",
+		Manifest: "/kit/initial",
 	}
 
 	BootstrapConfig = Config{

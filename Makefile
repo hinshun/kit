@@ -14,7 +14,7 @@ bin/%: core/% FORCE
 	@echo "$@"
 	@go build -buildmode=plugin -o $@ ./$<
 
-binaries: $(BINARIES)
+bin: $(BINARIES)
 
 bootstrap: $(BINARIES)
 	@echo "$@"

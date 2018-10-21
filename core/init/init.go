@@ -13,7 +13,7 @@ import (
 
 type command struct{}
 
-var New kit.Constructor = func(c kit.Cli) (kit.Command, error) {
+var New kit.Constructor = func() (kit.Command, error) {
 	return &command{}, nil
 }
 
@@ -35,11 +35,11 @@ func (c command) Run(ctx context.Context) error {
 		return err
 	}
 
-	kitDir := filepath.Join(os.Getenv("HOME"), ".kit")
-	err = os.MkdirAll(kitDir, 0775)
+	configPath := kit.Kit(ctx).ConfigPath()
+	err = os.MkdirAll(filepath.Dir(configPath), 0775)
 	if err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(filepath.Join(kitDir, "config.json"), data, 0664)
+	return ioutil.WriteFile(configPath, data, 0664)
 }

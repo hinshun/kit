@@ -6,32 +6,35 @@ import (
 	"text/tabwriter"
 	"text/template"
 
-	"github.com/fatih/color"
 	"github.com/hinshun/kit/config"
 )
 
 var HelpTemplate = `{{header "Usage:"}}
   kit - Composable command-line toolkit.
 
-	kit {{flag "global options"}} {{name "command"}} {{flag "command options"}}
+	kit {{flag "global options"}} {{command "command"}} {{flag "command options"}}
 
 {{header "Commands:"}}{{range .Commands}}
-  {{join (names .Names) " "}} {{join (args .Args) " "}} {{if .Flags}}{{join (flags .Flags) " "}}{{end}}
+  {{join (commandPath .CommandPath) " "}} {{join (args .Args) " "}} {{if .Flags}}{{join (flags .Flags) " "}}{{end}}
     {{.Usage}}{{range .Args}}
 		{{arg .Type}}: {{.Usage}}{{end}}{{range .Flags}}
-		{{flag .Type}}: {{.Usage}}{{end}}{{end}}
+		{{flag .Type}}: {{.Usage}}{{end}}{{end}}{{if .UsageError}}
+
+{{usageError "Usage error:"}}
+  {{.UsageError}}{{end}}
 `
 
 func (c *Cli) PrintHelp(commands []*Command) error {
 	funcs := template.FuncMap{
-		"join":   join,
-		"header": decorateHeader,
-		"names":  decorateNames,
-		"name":   decorateName,
-		"args":   decorateArgs,
-		"arg":    decorateArg,
-		"flags":  decorateFlags,
-		"flag":   decorateFlag,
+		"join":        join,
+		"header":      c.DecorateHeader,
+		"usageError":  c.DecorateUsageError,
+		"commandPath": c.DecorateCommandPath,
+		"command":     c.DecorateCommand,
+		"args":        c.DecorateArgs,
+		"arg":         c.DecorateArg,
+		"flags":       c.DecorateFlags,
+		"flag":        c.DecorateFlag,
 	}
 
 	w := tabwriter.NewWriter(c.stdio.Out, 1, 8, 2, ' ', 0)
@@ -50,41 +53,45 @@ func join(strs []string, separator string) string {
 	return strings.Join(strs, separator)
 }
 
-func decorateHeader(header string) string {
-	return color.New(color.Bold, color.Underline).Sprint(header)
+func (c *Cli) DecorateHeader(header string) string {
+	return c.headerColor.Sprint(header)
 }
 
-func decorateNames(names []string) []string {
-	for i := 0; i < len(names); i++ {
-		names[i] = decorateName(names[i])
+func (c *Cli) DecorateUsageError(header string) string {
+	return c.usageErrorColor.Sprint(header)
+}
+
+func (c *Cli) DecorateCommandPath(commandPath []string) []string {
+	for i := 0; i < len(commandPath); i++ {
+		commandPath[i] = c.DecorateCommand(commandPath[i])
 	}
-	return names
+	return commandPath
 }
 
-func decorateName(name string) string {
-	return color.New(color.FgWhite, color.Underline).Sprint(name)
+func (c *Cli) DecorateCommand(command string) string {
+	return c.commandColor.Sprint(command)
 }
 
-func decorateArgs(inputs []config.Input) []string {
+func (c *Cli) DecorateArgs(inputs []config.Input) []string {
 	var args []string
 	for _, input := range inputs {
-		args = append(args, decorateArg(input.String()))
+		args = append(args, c.DecorateArg(input.String()))
 	}
 	return args
 }
 
-func decorateArg(arg string) string {
-	return color.New(color.FgYellow).Sprintf("<%s>", arg)
+func (c *Cli) DecorateArg(arg string) string {
+	return c.argColor.Sprintf("<%s>", arg)
 }
 
-func decorateFlags(inputs []config.Input) []string {
+func (c *Cli) DecorateFlags(inputs []config.Input) []string {
 	var flags []string
 	for _, input := range inputs {
-		flags = append(flags, decorateFlag(input.String()))
+		flags = append(flags, c.DecorateFlag(input.String()))
 	}
 	return flags
 }
 
-func decorateFlag(flag string) string {
-	return fmt.Sprintf("[%s]", color.New(color.FgGreen).Sprint(flag))
+func (c *Cli) DecorateFlag(flag string) string {
+	return fmt.Sprintf("[%s]", c.flagColor.Sprint(flag))
 }

@@ -3,31 +3,16 @@ package kit
 import (
 	"context"
 	"io"
+	"path/filepath"
 )
 
-type Kit interface {
-	Run(ctx context.Context, args []string) error
-}
+var (
+	KitDir         = ".kit"
+	ConfigPath     = filepath.Join(KitDir, ConfigFilename)
+	ConfigFilename = "config.json"
+)
 
-type Cli interface {
-	Stdio() Stdio
-	Args() Args
-	Flags() Flags
-}
-
-type Stdio struct {
-	In  io.Reader
-	Out io.Writer
-	Err io.Writer
-}
-
-type Args interface {
-}
-
-type Flags interface {
-}
-
-type Constructor func(cli Cli) (Command, error)
+type Constructor func() (Command, error)
 
 type Command interface {
 	Usage() string
@@ -36,8 +21,8 @@ type Command interface {
 	Run(ctx context.Context) error
 }
 
-type Arg interface {
-}
-
-type Flag interface {
+type Stdio struct {
+	In  io.Reader
+	Out io.Writer
+	Err io.Writer
 }

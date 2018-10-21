@@ -16,10 +16,11 @@ type Kit struct {
 	cli     *Cli
 	loader  *Loader
 	flagSet *flag.FlagSet
+	config  *string
 	help    *bool
 }
 
-func NewKit() kit.Kit {
+func NewKit() *Kit {
 	c := NewCli()
 
 	flagSet := flag.NewFlagSet("kit", flag.ContinueOnError)
@@ -29,6 +30,7 @@ func NewKit() kit.Kit {
 		cli:     c,
 		loader:  NewLoader(c, local.NewStore()),
 		flagSet: flagSet,
+		config:  flagSet.String("config", filepath.Join(os.Getenv("HOME"), kit.ConfigPath), "path to kit config"),
 		help:    flagSet.Bool("help", false, "display this help text"),
 	}
 }
@@ -39,8 +41,8 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	kitDir := filepath.Join(os.Getenv("HOME"), ".kit")
-	cfg, err := config.New(filepath.Join(kitDir, "config.json"))
+	k.cli.configPath = *k.config
+	cfg, err := config.New(k.cli.ConfigPath())
 	if err != nil {
 		return err
 	}
@@ -50,9 +52,17 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	if *k.help && len(command.Names) > 0 {
-		return k.cli.PrintHelp([]*Command{command})
+	if *k.help || k.cli.UsageError != nil {
+		return k.PrintHelp(ctx, command)
 	}
 
+	ctx = kit.WithKit(ctx, k.cli)
+	return command.Action(ctx)
+}
+
+func (k *Kit) PrintHelp(ctx context.Context, command *Command) error {
+	if len(command.CommandPath) > 0 {
+		return k.cli.PrintHelp([]*Command{command})
+	}
 	return command.Action(ctx)
 }
