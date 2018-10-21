@@ -2,10 +2,6 @@ package cli
 
 import (
 	"context"
-	"flag"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
@@ -13,47 +9,33 @@ import (
 )
 
 type Kit struct {
-	cli     *Cli
-	loader  *Loader
-	flagSet *flag.FlagSet
-	config  *string
-	help    *bool
+	cli    *Cli
+	loader *Loader
 }
 
 func NewKit() *Kit {
 	c := NewCli()
 
-	flagSet := flag.NewFlagSet("kit", flag.ContinueOnError)
-	flagSet.SetOutput(ioutil.Discard)
-
 	return &Kit{
-		cli:     c,
-		loader:  NewLoader(c, local.NewStore()),
-		flagSet: flagSet,
-		config:  flagSet.String("config", filepath.Join(os.Getenv("HOME"), kit.ConfigPath), "path to kit config"),
-		help:    flagSet.Bool("help", false, "display this help text"),
+		cli:    c,
+		loader: NewLoader(c, local.NewStore()),
 	}
 }
 
 func (k *Kit) Run(ctx context.Context, args []string) error {
-	err := k.flagSet.Parse(args[1:])
+	err := k.cli.Parse(args[1:])
 	if err != nil {
 		return err
 	}
 
-	k.cli.configPath = *k.config
 	cfg, err := config.New(k.cli.ConfigPath())
 	if err != nil {
 		return err
 	}
 
-	command, err := k.loader.GetCommand(ctx, cfg, k.flagSet.Args())
+	command, err := k.loader.GetCommand(ctx, cfg, k.cli.flagSet.Args())
 	if err != nil {
 		return err
-	}
-
-	if *k.help || k.cli.UsageError != nil {
-		return k.PrintHelp(ctx, command)
 	}
 
 	ctx = kit.WithKit(ctx, k.cli)

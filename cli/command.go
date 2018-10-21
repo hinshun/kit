@@ -19,7 +19,19 @@ type Command struct {
 	Action      func(ctx context.Context) error
 }
 
-func (c *Cli) Apply(cliCmd *Command, kitCmd kit.Command, args []string) error {
+func (c *Cli) VerifyNamespace(cliCmd *Command, args []string, depth int) error {
+	if len(args[depth:]) > 0 {
+		return fmt.Errorf(
+			"%s does not have command %s",
+			strings.Join(c.DecorateCommandPath(cliCmd.CommandPath), " "),
+			strings.Join(c.DecorateCommandPath(args[depth:]), " "),
+		)
+	}
+
+	return nil
+}
+
+func (c *Cli) VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) error {
 	name := cliCmd.CommandPath[len(cliCmd.CommandPath)-1]
 
 	flagSet := flag.NewFlagSet(name, flag.ContinueOnError)

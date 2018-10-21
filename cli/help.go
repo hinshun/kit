@@ -12,7 +12,7 @@ import (
 var HelpTemplate = `{{header "Usage:"}}
   kit - Composable command-line toolkit.
 
-	kit {{globalFlag "global options"}} {{command "command"}} {{globalFlag "command options"}}
+	kit {{globalFlag "global options"}} {{command "command"}} {{globalFlag "options"}} {{arg "arguments"}}
 
 {{header "Commands:"}}{{range .Commands}}
   {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}

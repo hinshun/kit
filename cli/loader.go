@@ -62,11 +62,26 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			})
 		}
 
-		return &Command{
+		// For usage errors in the root namespace of kit, we should display "kit"
+		// instead of an empty path.
+		commandPath := args[:depth]
+		if len(commandPath) == 0 {
+			commandPath = []string{"kit"}
+		}
+
+		cliCmd := &Command{
+			CommandPath: commandPath,
 			Action: func(ctx context.Context) error {
 				return l.cli.PrintHelp(commands)
 			},
-		}, nil
+		}
+
+		err := l.cli.VerifyNamespace(cliCmd, args, depth)
+		if err != nil {
+			l.cli.UsageError = err
+		}
+
+		return cliCmd, nil
 	case config.CommandManifest:
 		path, err := l.store.Get(ctx, manifest.Hash)
 		if err != nil {
@@ -88,14 +103,18 @@ func (l *Loader) GetCommand(ctx context.Context, cfg *config.Config, args []stri
 			Usage:       manifest.Usage,
 			Args:        manifest.Args,
 			Flags:       manifest.Flags,
-			Action: func(ctx context.Context) error {
-				return kitCmd.Run(ctx)
-			},
 		}
 
-		err = l.cli.Apply(cliCmd, kitCmd, args[depth:])
+		err = l.cli.VerifyCommand(cliCmd, kitCmd, args[depth:])
 		if err != nil {
 			l.cli.UsageError = err
+		}
+
+		cliCmd.Action = func(ctx context.Context) error {
+			if *l.cli.help || l.cli.UsageError != nil {
+				return l.cli.PrintHelp([]*Command{cliCmd})
+			}
+			return kitCmd.Run(ctx)
 		}
 
 		return cliCmd, nil
