@@ -32,8 +32,10 @@ func New(path string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg := InitConfig
-	if !os.IsNotExist(err) {
+	var cfg Config
+	if os.IsNotExist(err) {
+		cfg = InitConfig
+	} else {
 		data, err := ioutil.ReadFile(path)
 		if err != nil {
 			return nil, err

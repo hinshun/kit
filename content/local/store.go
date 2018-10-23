@@ -17,33 +17,33 @@ func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 	switch manifest {
 	case "/kit/bootstrap":
 		return ".kit/bootstrap.json", nil
-	case "/kit/config":
-		return ".kit/config.json", nil
+	case "/kit/plugin":
+		return ".kit/plugin.json", nil
 	case "/kit/init":
 		return ".kit/init.json", nil
 	case "/kit/ls":
 		return ".kit/ls.json", nil
-	case "/kit/config/add":
-		return ".kit/config/add.json", nil
-	case "/kit/config/rm":
-		return ".kit/config/rm.json", nil
+	case "/kit/plugin/add":
+		return ".kit/plugin/add.json", nil
+	case "/kit/plugin/rm":
+		return ".kit/plugin/rm.json", nil
 	case "/ipfs/ls":
 		return "bin/ls", nil
 	case "/ipfs/init":
 		return "bin/init", nil
-	case "/ipfs/config/add":
-		return "bin/config/add", nil
-	case "/ipfs/config/rm":
-		return "bin/config/rm", nil
+	case "/ipfs/plugin/add":
+		return "bin/plugin/add", nil
+	case "/ipfs/plugin/rm":
+		return "bin/plugin/rm", nil
 	}
 
 	return "", nil
 }
 
 // func SyncCommands(ctx context.Context, sh *shell.Shell, cfg *kit.Config) (refs []string, err error) {
-// 	var configLock kit.ConfigLock
+// 	var pluginLock kit.ConfigLock
 
-// 	lockPath := ".kit/store/config.lock"
+// 	lockPath := ".kit/store/plugin.lock"
 // 	_, err = os.Stat(lockPath)
 // 	if err != nil {
 // 		if !os.IsNotExist(err) {
@@ -55,14 +55,14 @@ func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 // 			return nil, err
 // 		}
 
-// 		err = json.Unmarshal(data, &configLock)
+// 		err = json.Unmarshal(data, &pluginLock)
 // 		if err != nil {
 // 			return nil, err
 // 		}
 // 	}
 
 // 	refLockByRef := make(map[string]string)
-// 	for _, refLock := range configLock.RefLocks {
+// 	for _, refLock := range pluginLock.RefLocks {
 // 		refLockByRef[refLock.Ref] = refLock.Cid
 // 	}
 
@@ -85,7 +85,7 @@ func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 // 	}
 
 // 	refIndex := 0
-// 	for i, refLock := range configLock.RefLocks {
+// 	for i, refLock := range pluginLock.RefLocks {
 // 		found := false
 // 		for j := refIndex; j < len(refs); j, refIndex = j+1, refIndex+1 {
 // 			if refLock.Ref == refs[j] {
@@ -95,16 +95,16 @@ func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 // 		}
 
 // 		if found {
-// 			configLock.RefLocks = append(configLock.RefLocks[:i], configLock.RefLocks[i+1:]...)
+// 			pluginLock.RefLocks = append(pluginLock.RefLocks[:i], pluginLock.RefLocks[i+1:]...)
 // 		}
 // 	}
 
-// 	configLock.RefLocks = append(configLock.RefLocks, refLocks...)
-// 	sort.SliceStable(configLock.RefLocks, func(i, j int) bool {
-// 		return configLock.RefLocks[i].Ref < configLock.RefLocks[j].Ref
+// 	pluginLock.RefLocks = append(pluginLock.RefLocks, refLocks...)
+// 	sort.SliceStable(pluginLock.RefLocks, func(i, j int) bool {
+// 		return pluginLock.RefLocks[i].Ref < pluginLock.RefLocks[j].Ref
 // 	})
 
-// 	data, err := json.MarshalIndent(&configLock, "", "    ")
+// 	data, err := json.MarshalIndent(&pluginLock, "", "    ")
 // 	if err != nil {
 // 		return nil, err
 // 	}

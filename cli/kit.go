@@ -59,11 +59,11 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	}
 
 	if *k.cli.help || k.cli.UsageError != nil || command.Action == nil {
-		commands := command.Commands
-		if len(commands) == 0 {
-			commands = []*Command{command}
+		if command.Action == nil {
+			return k.cli.PrintHelp(command.Commands)
+		} else {
+			return k.cli.PrintHelp([]*Command{command})
 		}
-		return k.cli.PrintHelp(commands)
 	}
 
 	ctx = kit.WithKit(ctx, k.cli)

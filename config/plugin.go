@@ -54,7 +54,7 @@ func (p Plugins) printTree(depth int) {
 			spaces = append(spaces, "\t")
 		}
 
-		log.Printf("%s%s\n", strings.Join(spaces, ""), plugin.Name)
+		log.Printf("%s%s: %s\n", strings.Join(spaces, ""), plugin.Name, plugin.Usage)
 		plugin.Plugins.printTree(depth + 1)
 	}
 }

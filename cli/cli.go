@@ -13,8 +13,9 @@ import (
 )
 
 type Cli struct {
-	Commands   []*Command
-	UsageError error
+	Commands    []*Command
+	CommandPath []string
+	UsageError  error
 
 	flagSet    *flag.FlagSet
 	help       *bool
@@ -57,6 +58,7 @@ func (c *Cli) ConfigPath() string {
 }
 
 func (c *Cli) Parse(args []string) error {
+	c.CommandPath = args
 	return c.flagSet.Parse(args)
 }
 

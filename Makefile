@@ -1,4 +1,4 @@
-COMMANDS=ls init config/add config/rm
+COMMANDS=ls init plugin/add plugin/rm
 
 BINARIES=$(addprefix bin/,$(COMMANDS))
 
