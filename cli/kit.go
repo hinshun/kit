@@ -34,6 +34,18 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		Manifest: cfg.Manifest,
 		Plugins:  cfg.Plugins,
 	}
+
+	manifest, err := k.cli.GetManifest(ctx, plugin)
+	if err != nil {
+		return err
+	}
+
+	merged := manifest.Plugins.Merge(plugin.Plugins)
+	if len(merged) == 0 {
+		plugin.Plugins = config.InitConfig.Plugins
+		plugin.Plugins.Print()
+	}
+
 	command, err := k.cli.GetCommand(ctx, plugin, k.cli.flagSet.Args())
 	if err != nil {
 		return err

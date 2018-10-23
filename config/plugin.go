@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"sort"
 	"strings"
 )
 
@@ -32,6 +33,14 @@ func (p Plugins) Merge(plugins Plugins) Plugins {
 	}
 
 	return p
+}
+
+// Sort lexicographically sort plugins by name to produce a deterministic
+// config.
+func (p Plugins) Sort() {
+	sort.SliceStable(p, func(i, j int) bool {
+		return p[i].Name < p[j].Name
+	})
 }
 
 func (p Plugins) Print() {

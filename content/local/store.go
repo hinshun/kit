@@ -15,8 +15,6 @@ func NewStore() content.Store {
 
 func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 	switch manifest {
-	case "/kit/initial":
-		return ".kit/initial.json", nil
 	case "/kit/bootstrap":
 		return ".kit/bootstrap.json", nil
 	case "/kit/config":
@@ -27,12 +25,16 @@ func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 		return ".kit/ls.json", nil
 	case "/kit/config/add":
 		return ".kit/config/add.json", nil
+	case "/kit/config/rm":
+		return ".kit/config/rm.json", nil
 	case "/ipfs/ls":
 		return "bin/ls", nil
 	case "/ipfs/init":
 		return "bin/init", nil
 	case "/ipfs/config/add":
 		return "bin/config/add", nil
+	case "/ipfs/config/rm":
+		return "bin/config/rm", nil
 	}
 
 	return "", nil

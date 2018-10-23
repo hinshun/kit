@@ -16,3 +16,7 @@ type Flag interface {
 func StringFlag(name, usage, value string, dst *string) Flag {
 	return flags.NewStringFlag(name, usage, value, dst)
 }
+
+func BoolFlag(name, usage string, value bool, dst *bool) Flag {
+	return flags.NewBoolFlag(name, usage, value, dst)
+}

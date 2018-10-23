@@ -8,7 +8,12 @@ import (
 
 var (
 	InitConfig = Config{
-		Manifest: "/kit/initial",
+		Plugins: Plugins{
+			{
+				Name:     "init",
+				Manifest: "/kit/init",
+			},
+		},
 	}
 
 	BootstrapConfig = Config{

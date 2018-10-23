@@ -18,7 +18,8 @@ var HelpTemplate = `{{header "Usage:"}}
   {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
     {{.Usage}}{{range .Flags}}
 		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
-		{{arg .Type}}: {{.Usage}}{{end}}{{end}}{{if .UsageError}}
+		{{arg .Type}}: {{.Usage}}{{end}}
+{{end}}{{if .UsageError}}
 
 {{usageError "Usage error:"}}
   {{.UsageError}}{{end}}
@@ -98,5 +99,11 @@ func (c *Cli) DecorateFlags(inputs []config.Flag) []string {
 }
 
 func (c *Cli) DecorateFlag(flag config.Flag) string {
-	return fmt.Sprintf("[%s]", c.flagColor.Sprintf("--%s <%s>", flag.Name, flag.Type))
+	var output string
+	if flag.Type == "" {
+		output = fmt.Sprintf("--%s", flag.Name)
+	} else {
+		output = fmt.Sprintf("--%s <%s>", flag.Name, flag.Type)
+	}
+	return fmt.Sprintf("[%s]", c.flagColor.Sprint(output))
 }
