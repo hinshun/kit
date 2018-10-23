@@ -71,6 +71,13 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 			Commands:    commands,
 		}
 
+		// Only override usage if it's not the root namespace.
+		if depth > 0 {
+			cliCmd.Usage = manifest.Usage
+		} else {
+			cliCmd.Usage = plugin.Usage
+		}
+
 		cliCmd.Verify = VerifyNamespace(cliCmd, args, depth)
 		return cliCmd, nil
 	case config.CommandManifest:
@@ -107,9 +114,9 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 
 		cliCmd.Verify = VerifyCommand(cliCmd, kitCmd, args[depth:])
 		return cliCmd, nil
+	default:
+		return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 	}
-
-	return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 }
 
 func (l *Loader) FindPlugin(ctx context.Context, plugin config.Plugin, args []string) (config.Plugin, int, error) {

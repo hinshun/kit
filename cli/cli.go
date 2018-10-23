@@ -13,9 +13,10 @@ import (
 )
 
 type Cli struct {
-	Commands    []*Command
-	CommandPath []string
-	UsageError  error
+	NamespacePath  []string
+	NamespaceUsage string
+	Commands       []*Command
+	UsageError     error
 
 	flagSet    *flag.FlagSet
 	help       *bool
@@ -58,10 +59,17 @@ func (c *Cli) ConfigPath() string {
 }
 
 func (c *Cli) Parse(args []string) error {
-	c.CommandPath = args
 	return c.flagSet.Parse(args)
 }
 
 func (c *Cli) GetCommand(ctx context.Context, plugin config.Plugin, args []string) (*Command, error) {
 	return c.loader.GetCommand(ctx, plugin, args)
+}
+
+func (c *Cli) SetNamespaceUsage(commandPath []string, usage string) {
+	if commandPath[0] != "kit" {
+		commandPath = append([]string{"kit"}, commandPath...)
+	}
+	c.NamespacePath = commandPath
+	c.NamespaceUsage = usage
 }

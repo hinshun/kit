@@ -31,6 +31,7 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 
 	plugin := config.Plugin{
 		Name:     "kit",
+		Usage:    "Composable command-line toolkit.",
 		Manifest: cfg.Manifest,
 		Plugins:  cfg.Plugins,
 	}
@@ -43,10 +44,10 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	merged := manifest.Plugins.Merge(plugin.Plugins)
 	if len(merged) == 0 {
 		plugin.Plugins = config.InitConfig.Plugins
-		plugin.Plugins.Print()
 	}
 
-	command, err := k.cli.GetCommand(ctx, plugin, k.cli.flagSet.Args())
+	cliArgs := k.cli.flagSet.Args()
+	command, err := k.cli.GetCommand(ctx, plugin, cliArgs)
 	if err != nil {
 		return err
 	}
@@ -60,19 +61,20 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 
 	if *k.cli.help || k.cli.UsageError != nil || command.Action == nil {
 		if command.Action == nil {
+			k.cli.SetNamespaceUsage(command.CommandPath, command.Usage)
 			return k.cli.PrintHelp(command.Commands)
 		} else {
+			namespace := config.Plugin{Plugins: merged}.FindParent(command.CommandPath)
+			namespaceManifest, err := k.cli.GetManifest(ctx, namespace)
+			if err != nil {
+				return err
+			}
+
+			k.cli.SetNamespaceUsage(command.CommandPath[:len(command.CommandPath)-1], namespaceManifest.Usage)
 			return k.cli.PrintHelp([]*Command{command})
 		}
 	}
 
 	ctx = kit.WithKit(ctx, k.cli)
-	return command.Action(ctx)
-}
-
-func (k *Kit) PrintHelp(ctx context.Context, command *Command) error {
-	if len(command.CommandPath) > 0 {
-		return k.cli.PrintHelp([]*Command{command})
-	}
 	return command.Action(ctx)
 }

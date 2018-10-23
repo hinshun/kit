@@ -13,6 +13,23 @@ type Plugin struct {
 	Plugins  Plugins `json:"plugins,omitempty"`
 }
 
+func (p Plugin) FindParent(commandPath []string) Plugin {
+	if len(commandPath) == 0 {
+		return p
+	}
+
+	for _, child := range p.Plugins {
+		if child.Name == commandPath[0] {
+			if len(commandPath) == 1 {
+				return p
+			}
+			return child.FindParent(commandPath[1:])
+		}
+	}
+
+	return p
+}
+
 type Plugins []Plugin
 
 func (p Plugins) Merge(plugins Plugins) Plugins {

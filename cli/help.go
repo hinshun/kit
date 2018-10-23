@@ -10,21 +10,20 @@ import (
 )
 
 var HelpTemplate = `{{header "Usage:"}}
-  kit - Composable command-line toolkit.
+	{{join (commandPath .NamespacePath) " "}}{{if .NamespaceUsage}} - {{.NamespaceUsage}}{{end}}
 
-	kit {{globalFlag "global options"}} {{command "command"}} {{globalFlag "options"}} {{arg "arguments"}}
+	{{if not .NamespacePath}}{{command "kit"}}{{else}}{{join (commandPath .NamespacePath) " "}}{{end}} {{globalFlag "global options"}} {{command "command"}} {{globalFlag "options"}} {{arg "arguments"}}
 
 {{header "Commands:"}}{{if not .Commands}}
-  No commands in {{join (commandPath .CommandPath) " "}}.{{end}}{{range .Commands}}
+  No commands in {{join (commandPath .NamespacePath) " "}}.{{end}}{{range .Commands}}
   {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
     {{.Usage}}{{range .Flags}}
 		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
 		{{arg .Type}}: {{.Usage}}{{end}}
 {{end}}{{if .UsageError}}
-
 {{usageError "Usage error:"}}
-  {{.UsageError}}{{end}}
-`
+  {{.UsageError}}
+{{end}}`
 
 func (c *Cli) PrintHelp(commands []*Command) error {
 	funcs := template.FuncMap{
@@ -65,10 +64,11 @@ func (c *Cli) DecorateUsageError(header string) string {
 }
 
 func (c *Cli) DecorateCommandPath(commandPath []string) []string {
-	for i := 0; i < len(commandPath); i++ {
-		commandPath[i] = c.DecorateCommand(commandPath[i])
+	var decorated []string
+	for _, command := range commandPath {
+		decorated = append(decorated, c.DecorateCommand(command))
 	}
-	return commandPath
+	return decorated
 }
 
 func (c *Cli) DecorateCommand(command string) string {
