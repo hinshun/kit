@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"plugin"
+	"runtime"
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
@@ -81,9 +82,20 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 		cliCmd.Verify = VerifyNamespace(cliCmd, args, depth)
 		return cliCmd, nil
 	case config.CommandManifest:
-		path, err := l.store.Get(ctx, manifest.Hash)
-		if err != nil {
-			return nil, err
+		var path string
+		for _, platform := range manifest.Platforms {
+			if platform.Architecture == runtime.GOARCH &&
+				platform.OS == runtime.GOOS {
+				path, err = l.store.Get(ctx, platform.Digest)
+				if err != nil {
+					return nil, err
+				}
+				break
+			}
+		}
+
+		if path == "" {
+			return nil, fmt.Errorf("unable to find digest for platform %s %s", runtime.GOARCH, runtime.GOOS)
 		}
 
 		constructor, err := OpenConstructor(path)

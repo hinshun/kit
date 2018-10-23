@@ -5,5 +5,5 @@ import (
 )
 
 type Store interface {
-	Get(ctx context.Context, manifest string) (string, error)
+	Get(ctx context.Context, digest string) (string, error)
 }

@@ -21,14 +21,10 @@ func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 		return ".kit/plugin.json", nil
 	case "/kit/init":
 		return ".kit/init.json", nil
-	case "/kit/ls":
-		return ".kit/ls.json", nil
 	case "/kit/plugin/add":
 		return ".kit/plugin/add.json", nil
 	case "/kit/plugin/rm":
 		return ".kit/plugin/rm.json", nil
-	case "/ipfs/ls":
-		return "bin/ls", nil
 	case "/ipfs/init":
 		return "bin/init", nil
 	case "/ipfs/plugin/add":

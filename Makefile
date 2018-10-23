@@ -2,19 +2,15 @@ COMMANDS=ls init plugin/add plugin/rm
 
 BINARIES=$(addprefix bin/,$(COMMANDS))
 
-.PHONY: kit bootstrap clean
+.PHONY: bootstrap clean
 
-kit: bootstrap
-	@echo "$@"
-	@go build -o kit ./cmd/kit/main.go
+bin: $(BINARIES)
 
 FORCE:
 
 bin/%: core/% FORCE
 	@echo "$@"
 	@go build -buildmode=plugin -o $@ ./$<
-
-bin: $(BINARIES)
 
 bootstrap: $(BINARIES)
 	@echo "$@"
