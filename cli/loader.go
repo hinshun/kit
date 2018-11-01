@@ -136,20 +136,19 @@ func (l *Loader) FindPlugin(ctx context.Context, plugin config.Plugin, args []st
 }
 
 func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []string, depth int) (config.Plugin, int, error) {
-	// Load the base manifest and merge with user defined plugins.
+	// Get the manifest's plugins if any.
 	manifest, err := l.GetManifest(ctx, plugin)
 	if err != nil {
 		return plugin, depth, err
 	}
-
-	plugin.Plugins = manifest.Plugins.Merge(plugin.Plugins)
+	plugin.Plugins = manifest.Plugins
 
 	// If there are no more args, then we found our plugin without extra args.
 	if len(args) == depth {
 		return plugin, depth, nil
 	}
 
-	// Find the plugin matching the next arg.
+	// Find the plugin with its name matching the next arg.
 	index := -1
 	for i, p := range plugin.Plugins {
 		if args[depth] == p.Name {
@@ -158,7 +157,8 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 		}
 	}
 
-	// No plugin matched with the next arg, the rest of args are for the command.
+	// No plugin matched with the next arg, then the rest of args are for the
+	// command.
 	if index == -1 {
 		return plugin, depth, nil
 	}
@@ -166,6 +166,7 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 	// We matched one level deeper in args.
 	depth++
 
+	// Check the type of the plugin to decide whether to continue finding.
 	child := plugin.Plugins[index]
 	manifest, err = l.GetManifest(ctx, child)
 	if err != nil {
@@ -174,10 +175,6 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 
 	switch manifest.Type {
 	case config.NamespaceManifest:
-		plugin = config.Plugin{
-			Plugins: manifest.Plugins,
-		}
-
 		// If it's a namespace, there are more possible matches.
 		return l.findPlugin(ctx, child, args, depth)
 	case config.CommandManifest:
@@ -191,8 +188,9 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error) {
 	if plugin.Manifest == "" {
 		return config.Manifest{
-			Usage: plugin.Usage,
-			Type:  config.NamespaceManifest,
+			Usage:   plugin.Usage,
+			Type:    config.NamespaceManifest,
+			Plugins: plugin.Plugins,
 		}, nil
 	}
 

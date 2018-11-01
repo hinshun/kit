@@ -71,13 +71,8 @@ func (c *command) Run(ctx context.Context) error {
 			return err
 		}
 
+		cfg.Manifest = plugin.Manifest
 		cfg.Plugins = plugin.Plugins
-
-		// If removing a plugin from the root namespace and the namespace manifest
-		// was unpinned then unpin the config manifest too.
-		if len(names) == 1 {
-			cfg.Manifest = plugin.Manifest
-		}
 	}
 
 	cfgJson, err := json.MarshalIndent(&cfg, "", "    ")
@@ -93,74 +88,42 @@ func (c *command) removePlugin(ctx context.Context, names []string, plugin confi
 		return plugin, nil
 	}
 
-	// Load the base manifest and merge with user defined plugins.
+	// Get the manifest's plugins if any.
 	manifest, err := kit.Kit(ctx).GetManifest(ctx, plugin)
 	if err != nil {
 		return plugin, err
 	}
-	merged := manifest.Plugins.Merge(plugin.Plugins)
+	plugin.Plugins = manifest.Plugins
+	if plugin.Usage == "" {
+		plugin.Usage = manifest.Usage
+	}
 
-	for i, child := range merged {
-		if child.Name == names[0] {
-			// Determine whether child came from config or a namespace manifest.
-			configIndex := -1
-			for j, configChild := range plugin.Plugins {
-				if configChild.Name == child.Name {
-					configIndex = j
-					break
-				}
+	for i, child := range plugin.Plugins {
+		if child.Name != names[0] {
+			continue
+		}
+
+		// If plugins are from its namespace manifest, the user must pin the
+		// namespace or use "--pin" before it can remove the plugin.
+		if plugin.Manifest != "" {
+			if !c.pin {
+				return plugin, fmt.Errorf("requires pinning")
+			}
+			plugin.Manifest = ""
+		}
+
+		if len(names) > 1 {
+			// Matched the command path, recurse to find the plugin to remove.
+			replace, err := c.removePlugin(ctx, names[1:], child)
+			if err != nil {
+				return plugin, err
 			}
 
-			if len(names) > 1 {
-				// Matched the command path, recurse to find the plugin to remove.
-				replace, err := c.removePlugin(ctx, names[1:], child)
-				if err != nil {
-					return plugin, err
-				}
-
-				// If no child is found from the config's plugins, then it was merged from a
-				// namespace manifest. The user can pin the implict namespace or use "--pin"
-				// when removing.
-				if configIndex == -1 {
-					plugin.Plugins = merged
-					plugin.Plugins[i] = replace
-				} else {
-					plugin.Plugins[configIndex] = replace
-				}
-
-				return plugin, nil
-			} else {
-				// If no child is found from the config's plugins, then it was merged from a
-				// namespace manifest. The user can pin the plugin's siblings or use "--pin"
-				// when removing.
-				if configIndex == -1 {
-					if !c.pin {
-						return plugin, fmt.Errorf("requires pinning")
-					}
-
-					plugin.Manifest = ""
-					plugin.Usage = manifest.Usage
-					plugin.Plugins = merged
-					plugin.Plugins = append(plugin.Plugins[:i], plugin.Plugins[i+1:]...)
-					return plugin, nil
-				}
-
-				manifestIndex := -1
-				for j, manifestChild := range manifest.Plugins {
-					if manifestChild.Name == child.Name {
-						manifestIndex = j
-						break
-					}
-				}
-
-				if manifestIndex != -1 {
-					plugin.Manifest = ""
-					plugin.Usage = manifest.Usage
-				}
-
-				plugin.Plugins = append(plugin.Plugins[:configIndex], plugin.Plugins[configIndex+1:]...)
-				return plugin, nil
-			}
+			plugin.Plugins[i] = replace
+			return plugin, nil
+		} else {
+			plugin.Plugins = append(plugin.Plugins[:i], plugin.Plugins[i+1:]...)
+			return plugin, nil
 		}
 	}
 

@@ -77,7 +77,7 @@ func (c *command) Run(ctx context.Context) error {
 	}
 
 	if c.path == "/" {
-		// The config's manifest is the root's manifest.
+		// The root manifest is the config's manifest.
 		cfg.Manifest = c.manifest
 	} else {
 		c.path = strings.Trim(c.path, "/")
@@ -89,6 +89,7 @@ func (c *command) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		cfg.Manifest = plugin.Manifest
 		cfg.Plugins = plugin.Plugins
 	}
 
@@ -108,71 +109,53 @@ func (c *command) addPlugin(ctx context.Context, names []string, plugin config.P
 		return plugin, nil
 	}
 
-	// Load the base manifest and merge with config plugins.
+	// Get the manifest's plugins if any.
 	manifest, err := kit.Kit(ctx).GetManifest(ctx, plugin)
 	if err != nil {
 		return plugin, err
 	}
-	merged := manifest.Plugins.Merge(plugin.Plugins)
+	plugin.Plugins = manifest.Plugins
+	if plugin.Usage == "" {
+		plugin.Usage = manifest.Usage
+	}
 
-	for i, child := range merged {
-		if child.Name == names[0] {
-			var replace config.Plugin
-
-			// If names is length 1, there is a conflict. The user can remove the
-			// conflicting plugin and re-add, or use "--overwrite" when adding.
-			if len(names) == 1 {
-				if !c.overwrite {
-					return plugin, fmt.Errorf("conflict")
-				}
-
-				replace = config.Plugin{
-					Name:     child.Name,
-					Manifest: c.manifest,
-					Usage:    c.usage,
-				}
-			} else {
-				replace, err = c.addPlugin(ctx, names[1:], child)
-				if err != nil {
-					return plugin, err
-				}
-			}
-
-			// Determine whether child came from config or a namespace manifest.
-			index := -1
-			for j, configChild := range plugin.Plugins {
-				if configChild.Name == child.Name {
-					index = j
-					break
-				}
-			}
-
-			// If no child is found from the config's plugins, then it was merged from a
-			// namespace manifest. The user can pin the implicit namespace or use "--pin"
-			// when adding.
-			if index == -1 {
-				if !c.pin {
-					return plugin, fmt.Errorf("requires pinning")
-				}
-
-				if len(names) > 1 {
-					// Lock in the merged plugins as we're not in the immediate parent
-					// namespace yet.
-					plugin.Plugins = merged
-					plugin.Plugins[i] = replace
-				} else {
-					// Only add the new plugin because we don't want to lock in the sibling
-					// plugins too.
-					plugin.Plugins = append(plugin.Plugins, replace)
-					plugin.Plugins.Sort()
-				}
-
-				return plugin, nil
-			}
-
-			plugin.Plugins[index] = replace
-			return plugin, nil
+	for i, child := range plugin.Plugins {
+		if child.Name != names[0] {
+			continue
 		}
+
+		var replace config.Plugin
+
+		// If names is length 1, there is a conflict. The user can remove the
+		// conflicting plugin and re-add, or use "--overwrite" when adding.
+		if len(names) == 1 {
+			if !c.overwrite {
+				return plugin, fmt.Errorf("conflict")
+			}
+
+			replace = config.Plugin{
+				Name:     child.Name,
+				Manifest: c.manifest,
+				Usage:    c.usage,
+			}
+		} else {
+			replace, err = c.addPlugin(ctx, names[1:], child)
+			if err != nil {
+				return plugin, err
+			}
+		}
+
+		if plugin.Manifest != "" {
+			// If plugins are from its namespace manifest, the user must pin the
+			// namespace or use "--pin" before it can add the plugin.
+			if !c.pin {
+				return plugin, fmt.Errorf("requires pinning")
+			}
+		}
+
+		plugin.Manifest = ""
+		plugin.Plugins[i] = replace
+		return plugin, nil
 	}
 
 	// We found no plugin in this level matching the command path, so we can add a
@@ -190,6 +173,15 @@ func (c *command) addPlugin(ctx context.Context, names []string, plugin config.P
 		child.Usage = c.usage
 	}
 
+	// If plugins are from its namespace manifest, the user must pin the
+	// namespace or use "--pin" before it can add the plugin.
+	if plugin.Manifest != "" {
+		if !c.pin {
+			return plugin, fmt.Errorf("requires pinning")
+		}
+	}
+
+	plugin.Manifest = ""
 	plugin.Plugins = append(plugin.Plugins, child)
 	plugin.Plugins.Sort()
 

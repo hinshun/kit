@@ -21,9 +21,10 @@ var (
 	}
 )
 
+// Config
 type Config struct {
 	Manifest string  `json:"manifest,omitempty"`
-	Plugins  Plugins `json:"plugins"`
+	Plugins  Plugins `json:"plugins,omitempty"`
 }
 
 func New(path string) (*Config, error) {

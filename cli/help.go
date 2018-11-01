@@ -12,12 +12,12 @@ import (
 var HelpTemplate = `{{header "Usage:"}}
 	{{join (commandPath .NamespacePath) " "}}{{if .NamespaceUsage}} - {{.NamespaceUsage}}{{end}}
 
-	{{if not .NamespacePath}}{{command "kit"}}{{else}}{{join (commandPath .NamespacePath) " "}}{{end}} {{globalFlag "global options"}} {{command "command"}} {{globalFlag "options"}} {{arg "arguments"}}
+	{{command "kit"}} {{globalFlag "global options"}} {{join (append (commandPath (offset .NamespacePath 1) ) (command "command")) " "}} {{globalFlag "options"}} {{arg "arguments"}}
 
 {{header "Commands:"}}{{if not .Commands}}
   No commands in {{join (commandPath .NamespacePath) " "}}.{{end}}{{range .Commands}}
   {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
-    {{.Usage}}{{range .Flags}}
+		{{if eq .Usage ""}}A plugin namespace.{{else}}{{.Usage}}{{end}}{{range .Flags}}
 		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
 		{{arg .Type}}: {{.Usage}}{{end}}
 {{end}}{{if .UsageError}}
@@ -28,6 +28,8 @@ var HelpTemplate = `{{header "Usage:"}}
 func (c *Cli) PrintHelp(commands []*Command) error {
 	funcs := template.FuncMap{
 		"join":        join,
+		"offset":      offset,
+		"append":      appendStr,
 		"header":      c.DecorateHeader,
 		"usageError":  c.DecorateUsageError,
 		"commandPath": c.DecorateCommandPath,
@@ -53,6 +55,14 @@ func (c *Cli) PrintHelp(commands []*Command) error {
 
 func join(strs []string, separator string) string {
 	return strings.Join(strs, separator)
+}
+
+func offset(strs []string, offset int) []string {
+	return strs[offset:]
+}
+
+func appendStr(strs []string, elems ...string) []string {
+	return append(strs, elems...)
 }
 
 func (c *Cli) DecorateHeader(header string) string {
