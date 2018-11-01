@@ -2,8 +2,12 @@ package local
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 
+	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/content"
+	shell "github.com/ipfs/go-ipfs-api"
 )
 
 type store struct {
@@ -13,27 +17,43 @@ func NewStore() content.Store {
 	return &store{}
 }
 
-func (s *store) Get(ctx context.Context, manifest string) (string, error) {
-	switch manifest {
-	case "/kit/bootstrap":
-		return ".kit/bootstrap.json", nil
-	case "/kit/plugin":
-		return ".kit/plugin.json", nil
+func (s *store) Get(ctx context.Context, digest string) (string, error) {
+	switch digest {
 	case "/kit/init":
-		return ".kit/init.json", nil
+		digest = "QmRLyNYEx9Em1SnrN6n1yAL53Qa3eJXbVsAq4uhNBMXp1z"
+	case "/kit/bootstrap":
+		digest = "QmWhLFJfpdE6n8zgJVxNU8tfGjjKPdNTu1NTv3yg24sKNQ"
+	case "/kit/plugin":
+		digest = "QmetM7PMkuGJtwBS5Lw57cCfMDSYk4UHZRPGNzq9JtGLCP"
 	case "/kit/plugin/add":
-		return ".kit/plugin/add.json", nil
+		digest = "QmXs1eXBt5BTW331cEL3d9Gd5sto3a5tnE17qZYjSVvdfi"
 	case "/kit/plugin/rm":
-		return ".kit/plugin/rm.json", nil
-	case "/ipfs/init":
-		return "bin/init", nil
-	case "/ipfs/plugin/add":
-		return "bin/plugin/add", nil
-	case "/ipfs/plugin/rm":
-		return "bin/plugin/rm", nil
+		digest = "QmUPqj4NGi39jVjGP3YYWBQBQmNJX99g1mK3YCgZJaf5W3"
+	case "/kit/plugin/publish":
+		digest = "QmVSyD7JfKLaCKWZZqorG5wyUjUsZ6fVf3uRQngyJtd8BJ"
 	}
 
-	return "", nil
+	dir := filepath.Join(os.Getenv("HOME"), kit.KitDir, "store", NextToLast(digest))
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	filename := filepath.Join(dir, digest)
+	_, err = os.Stat(filename)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return filename, err
+		}
+
+		sh := shell.NewLocalShell()
+		err = sh.Get(digest, filename)
+		if err != nil {
+			return filename, err
+		}
+	}
+
+	return filename, nil
 }
 
 // func SyncCommands(ctx context.Context, sh *shell.Shell, cfg *kit.Config) (refs []string, err error) {
@@ -163,8 +183,8 @@ func (s *store) Get(ctx context.Context, manifest string) (string, error) {
 // 	return c, nil
 // }
 
-// func NextToLast(ref string) string {
-// 	nextToLastLen := 2
-// 	offset := len(ref) - nextToLastLen - 1
-// 	return ref[offset : offset+nextToLastLen]
-// }
+func NextToLast(ref string) string {
+	nextToLastLen := 2
+	offset := len(ref) - nextToLastLen - 1
+	return ref[offset : offset+nextToLastLen]
+}

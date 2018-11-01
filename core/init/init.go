@@ -13,10 +13,6 @@ import (
 
 type command struct{}
 
-var New kit.Constructor = func() (kit.Command, error) {
-	return &command{}, nil
-}
-
 func (c *command) Usage() string {
 	return "Initializes a kit config."
 }

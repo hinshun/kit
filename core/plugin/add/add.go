@@ -19,10 +19,6 @@ type command struct {
 	overwrite bool
 }
 
-var New kit.Constructor = func() (kit.Command, error) {
-	return &command{}, nil
-}
-
 func (c *command) Usage() string {
 	return "Adds a plugin to kit."
 }

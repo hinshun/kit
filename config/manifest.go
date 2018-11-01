@@ -22,8 +22,8 @@ var (
 )
 
 type Platform struct {
-	Architecture string `json:"architecture"`
 	OS           string `json:"os"`
+	Architecture string `json:"architecture"`
 	Digest       string `json:"digest"`
 }
 

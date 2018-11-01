@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"plugin"
 	"runtime"
 
 	"github.com/hinshun/kit"
@@ -98,7 +97,7 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 			return nil, fmt.Errorf("unable to find digest for platform %s %s", runtime.GOARCH, runtime.GOOS)
 		}
 
-		constructor, err := OpenConstructor(path)
+		constructor, err := kit.OpenConstructor(path)
 		if err != nil {
 			return nil, err
 		}
@@ -211,23 +210,4 @@ func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.
 	}
 
 	return manifest, nil
-}
-
-func OpenConstructor(path string) (kit.Constructor, error) {
-	p, err := plugin.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	symbol, err := p.Lookup("New")
-	if err != nil {
-		return nil, err
-	}
-
-	constructor, ok := symbol.(*kit.Constructor)
-	if !ok {
-		return nil, fmt.Errorf("symbol not a (*kit.Constructor)")
-	}
-
-	return *constructor, nil
 }
