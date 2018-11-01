@@ -46,6 +46,22 @@ func (s *store) Get(ctx context.Context, digest string) (string, error) {
 			return filename, err
 		}
 
+		// resp, err := http.Get(fmt.Sprintf("https://ipfs.io/ipfs/%s", digest))
+		// if err != nil {
+		// 	return filename, err
+		// }
+		// defer resp.Body.Close()
+
+		// data, err := ioutil.ReadAll(resp.Body)
+		// if err != nil {
+		// 	return filename, err
+		// }
+
+		// err = ioutil.WriteFile(filename, data, 0664)
+		// if err != nil {
+		// 	return filename, err
+		// }
+
 		sh := shell.NewLocalShell()
 		err = sh.Get(digest, filename)
 		if err != nil {
