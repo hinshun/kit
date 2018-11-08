@@ -17,7 +17,12 @@ var (
 	}
 
 	BootstrapConfig = Config{
-		Manifest: "/kit/bootstrap",
+		Plugins: Plugins{
+			{
+				Name:     "plugin",
+				Manifest: "/kit/plugin",
+			},
+		},
 	}
 )
 
@@ -46,6 +51,10 @@ func New(path string) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if cfg.Manifest == "" && len(cfg.Plugins) == 0 {
+		cfg = InitConfig
 	}
 
 	return &cfg, nil

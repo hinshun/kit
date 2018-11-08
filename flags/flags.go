@@ -45,7 +45,7 @@ func (f *BoolFlag) Name() string {
 }
 
 func (f *BoolFlag) Type() string {
-	return "false|true"
+	return ""
 }
 
 func (f *BoolFlag) Usage() string {

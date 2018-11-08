@@ -12,11 +12,11 @@ import (
 var HelpTemplate = `{{header "Usage:"}}
 	{{join (commandPath .NamespacePath) " "}}{{if .NamespaceUsage}} - {{.NamespaceUsage}}{{end}}
 
-	{{command "kit"}} {{globalFlag "global options"}} {{join (append (commandPath (offset .NamespacePath 1) ) (command "command")) " "}} {{globalFlag "options"}} {{arg "arguments"}}
+	{{command "kit"}} {{globalFlag "global options"}} {{command "command"}} {{globalFlag "options"}} {{arg "arguments"}}
 
 {{header "Commands:"}}{{if not .Commands}}
   No commands in {{join (commandPath .NamespacePath) " "}}.{{end}}{{range .Commands}}
-  {{join (commandPath .CommandPath) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
+  {{join (commandPath (offset .CommandPath 1)) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
 		{{if eq .Usage ""}}A plugin namespace.{{else}}{{.Usage}}{{end}}{{range .Flags}}
 		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
 		{{arg .Type}}: {{.Usage}}{{end}}

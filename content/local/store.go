@@ -20,17 +20,15 @@ func NewStore() content.Store {
 func (s *store) Get(ctx context.Context, digest string) (string, error) {
 	switch digest {
 	case "/kit/init":
-		digest = "QmRLyNYEx9Em1SnrN6n1yAL53Qa3eJXbVsAq4uhNBMXp1z"
-	case "/kit/bootstrap":
-		digest = "QmWhLFJfpdE6n8zgJVxNU8tfGjjKPdNTu1NTv3yg24sKNQ"
+		digest = "QmS8X5GD6m96vWek5J6CYMV83i2uQHpppyS8WkzHubhZhP"
 	case "/kit/plugin":
 		digest = "QmetM7PMkuGJtwBS5Lw57cCfMDSYk4UHZRPGNzq9JtGLCP"
 	case "/kit/plugin/add":
-		digest = "QmXs1eXBt5BTW331cEL3d9Gd5sto3a5tnE17qZYjSVvdfi"
+		digest = "QmUcGYviHnaDDw84AYEGk7vhyNGE3mByWREmTYTDfg5Whp"
 	case "/kit/plugin/rm":
-		digest = "QmUPqj4NGi39jVjGP3YYWBQBQmNJX99g1mK3YCgZJaf5W3"
+		digest = "QmZ3vmDkeeqkKJgqrHhhoHA8csP6EMRFt1hKmE8d95p2k4"
 	case "/kit/plugin/publish":
-		digest = "QmVSyD7JfKLaCKWZZqorG5wyUjUsZ6fVf3uRQngyJtd8BJ"
+		digest = "QmQnGQeZ1TFuMiTjauPJNxNCB5PH4pUU43HxeWjoWSrCJU"
 	}
 
 	dir := filepath.Join(os.Getenv("HOME"), kit.KitDir, "store", NextToLast(digest))

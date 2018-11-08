@@ -19,7 +19,7 @@ func NewKit() *Kit {
 }
 
 func (k *Kit) Run(ctx context.Context, args []string) error {
-	err := k.cli.Parse(args[1:])
+	err := k.cli.Parse(args)
 	if err != nil {
 		return err
 	}
@@ -30,10 +30,14 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	}
 
 	plugin := config.Plugin{
-		Name:     "kit",
-		Usage:    "Composable command-line toolkit.",
-		Manifest: cfg.Manifest,
-		Plugins:  cfg.Plugins,
+		Plugins: config.Plugins{
+			{
+				Name:     "kit",
+				Usage:    "Composable command-line toolkit.",
+				Manifest: cfg.Manifest,
+				Plugins:  cfg.Plugins,
+			},
+		},
 	}
 
 	manifest, err := k.cli.GetManifest(ctx, plugin)
@@ -46,7 +50,7 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		plugin.Plugins = config.InitConfig.Plugins
 	}
 
-	cliArgs := k.cli.flagSet.Args()
+	cliArgs := k.cli.Args()
 	command, err := k.cli.GetCommand(ctx, plugin, cliArgs)
 	if err != nil {
 		return err

@@ -11,8 +11,7 @@ FORCE:
 bin/%: core/% FORCE
 	@echo "$@"
 	@go build -buildmode=plugin -o $@-linux-amd64 ./$<
-	@CC=o64-clang CXX=o64-clang++ GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=plugin -o $@-darwin-amd64 ./$<
-	@kit plugin publish "$@-linux-amd64,$@-darwin-amd64"
+	@go run ./cmd/publish "$@-linux-amd64"
 
 bootstrap: $(BINARIES)
 	@echo "$@"

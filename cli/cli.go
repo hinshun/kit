@@ -62,6 +62,10 @@ func (c *Cli) Parse(args []string) error {
 	return c.flagSet.Parse(args)
 }
 
+func (c *Cli) Args() []string {
+	return append([]string{"kit"}, c.flagSet.Args()...)
+}
+
 func (c *Cli) GetCommand(ctx context.Context, plugin config.Plugin, args []string) (*Command, error) {
 	return c.loader.GetCommand(ctx, plugin, args)
 }
