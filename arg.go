@@ -8,6 +8,7 @@ type Arg interface {
 	Type() string
 	Usage() string
 	Set(v string) error
+	Autocomplete(input string) []string
 }
 
 func StringArg(name, usage string, path *string) Arg {

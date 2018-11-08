@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hinshun/kit"
@@ -32,5 +33,11 @@ func (c *command) Flags() []kit.Flag {
 
 func (c *command) Run(ctx context.Context) error {
 	pluginPaths := strings.Split(c.paths, ",")
-	return publish.Publish(pluginPaths)
+	digest, err := publish.Publish(pluginPaths)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(digest)
+	return nil
 }

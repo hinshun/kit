@@ -13,7 +13,7 @@ import (
 	shell "github.com/ipfs/go-ipfs-api"
 )
 
-func Publish(pluginPaths []string) error {
+func Publish(pluginPaths []string) (digest string, err error) {
 	sh := shell.NewLocalShell()
 
 	manifest := config.Manifest{
@@ -24,7 +24,7 @@ func Publish(pluginPaths []string) error {
 	for _, pluginPath := range pluginPaths {
 		parts := strings.Split(pluginPath, "-")
 		if len(parts) != 3 {
-			return fmt.Errorf("expected plugin path to be name-GOOS-GOARCH")
+			return digest, fmt.Errorf("expected plugin path to be name-GOOS-GOARCH")
 		}
 
 		if parts[1] == runtime.GOOS && parts[2] == runtime.GOARCH {
@@ -33,12 +33,12 @@ func Publish(pluginPaths []string) error {
 
 		f, err := os.Open(pluginPath)
 		if err != nil {
-			return err
+			return digest, err
 		}
 
-		digest, err := sh.Add(f)
+		digest, err = sh.Add(f)
 		if err != nil {
-			return err
+			return digest, err
 		}
 
 		manifest.Platforms = append(manifest.Platforms, config.Platform{
@@ -49,17 +49,17 @@ func Publish(pluginPaths []string) error {
 	}
 
 	if nativePluginPath == "" {
-		return fmt.Errorf("expected one of plugin path to be native")
+		return digest, fmt.Errorf("expected one of plugin path to be native")
 	}
 
 	constructor, err := kit.OpenConstructor(nativePluginPath)
 	if err != nil {
-		return err
+		return
 	}
 
 	cmd, err := constructor()
 	if err != nil {
-		return err
+		return digest, err
 	}
 
 	manifest.Usage = cmd.Usage()
@@ -81,14 +81,8 @@ func Publish(pluginPaths []string) error {
 
 	content, err := json.MarshalIndent(&manifest, "", "    ")
 	if err != nil {
-		return err
+		return digest, err
 	}
 
-	digest, err := sh.Add(bytes.NewReader(content))
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(digest)
-	return nil
+	return sh.Add(bytes.NewReader(content))
 }

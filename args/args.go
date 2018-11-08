@@ -22,3 +22,7 @@ func (a *StringArg) Set(v string) error {
 	*a.path = v
 	return nil
 }
+
+func (a *StringArg) Autocomplete(input string) []string {
+	return nil
+}

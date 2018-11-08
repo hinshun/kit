@@ -11,6 +11,7 @@ type Flag interface {
 	Type() string
 	Usage() string
 	Set(*flag.FlagSet)
+	Autocomplete(input string) []string
 }
 
 func StringFlag(name, usage, value string, dst *string) Flag {

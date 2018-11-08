@@ -20,7 +20,7 @@ type command struct {
 }
 
 func (c *command) Usage() string {
-	return "Adds a plugin to kit."
+	return "Adds a plugin to kitty."
 }
 
 func (c *command) Args() []kit.Arg {

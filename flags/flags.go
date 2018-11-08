@@ -29,6 +29,10 @@ func (f *StringFlag) Set(flagSet *flag.FlagSet) {
 	flagSet.StringVar(f.dst, f.name, f.value, f.usage)
 }
 
+func (f *StringFlag) Autocomplete(input string) []string {
+	return nil
+}
+
 type BoolFlag struct {
 	name  string
 	usage string
@@ -50,6 +54,10 @@ func (f *BoolFlag) Type() string {
 
 func (f *BoolFlag) Usage() string {
 	return f.usage
+}
+
+func (f *BoolFlag) Autocomplete(input string) []string {
+	return nil
 }
 
 func (f *BoolFlag) Set(flagSet *flag.FlagSet) {

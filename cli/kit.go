@@ -5,7 +5,9 @@ import (
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
-	"github.com/hinshun/kit/content/local"
+	"github.com/hinshun/kit/content/ipfsstore"
+	"github.com/hinshun/kit/content/kitstore"
+	"github.com/hinshun/kit/content/localstore"
 )
 
 type Kit struct {
@@ -13,8 +15,16 @@ type Kit struct {
 }
 
 func NewKit() *Kit {
+	s := kitstore.NewStore(
+		localstore.NewStore(
+			ipfsstore.NewStore(),
+		),
+	)
+
 	return &Kit{
-		cli: NewCli(NewLoader(local.NewStore())),
+		cli: NewCli(
+			NewLoader(s),
+		),
 	}
 }
 

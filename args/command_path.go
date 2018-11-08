@@ -34,3 +34,7 @@ func (a *CommandPathArg) Set(v string) error {
 	*a.path = v
 	return nil
 }
+
+func (a *CommandPathArg) Autocomplete(input string) []string {
+	return nil
+}

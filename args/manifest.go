@@ -21,3 +21,7 @@ func (a *ManifestArg) Set(v string) error {
 	*a.manifest = v
 	return nil
 }
+
+func (a *ManifestArg) Autocomplete(input string) []string {
+	return nil
+}
