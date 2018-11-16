@@ -79,6 +79,7 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 		}
 
 		cliCmd.Verify = VerifyNamespace(cliCmd, args, depth)
+		cliCmd.Autocomplete = AutocompleteNamespace(cliCmd, args, depth)
 		return cliCmd, nil
 	case config.CommandManifest:
 		var path string
@@ -124,6 +125,7 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 		}
 
 		cliCmd.Verify = VerifyCommand(cliCmd, kitCmd, args[depth:])
+		cliCmd.Autocomplete = AutocompleteCommand(kitCmd, args, depth)
 		return cliCmd, nil
 	default:
 		return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)

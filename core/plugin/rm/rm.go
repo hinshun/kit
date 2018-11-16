@@ -9,6 +9,7 @@ import (
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
+	"github.com/hinshun/kit/core/plugin"
 )
 
 type command struct {
@@ -22,7 +23,7 @@ func (c *command) Usage() string {
 
 func (c *command) Args() []kit.Arg {
 	return []kit.Arg{
-		kit.CommandPathArg(
+		plugin.CommandPathArg(
 			"The command path to remove the plugin.",
 			&c.path,
 		),

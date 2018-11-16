@@ -18,9 +18,10 @@ type Cli struct {
 	Commands       []*Command
 	UsageError     error
 
-	flagSet    *flag.FlagSet
-	help       *bool
-	configPath *string
+	flagSet      *flag.FlagSet
+	help         *bool
+	autocomplete *string
+	configPath   *string
 
 	loader *Loader
 	stdio  kit.Stdio
@@ -33,10 +34,11 @@ func NewCli(loader *Loader) *Cli {
 	flagSet.SetOutput(ioutil.Discard)
 
 	return &Cli{
-		flagSet:    flagSet,
-		help:       flagSet.Bool("help", false, "display this help text"),
-		configPath: flagSet.String("config", filepath.Join(os.Getenv("HOME"), kit.ConfigPath), "path to kit config"),
-		loader:     loader,
+		flagSet:      flagSet,
+		help:         flagSet.Bool("help", false, "display this help text"),
+		autocomplete: flagSet.String("autocomplete", "", "print autocomplete word list for a shell"),
+		configPath:   flagSet.String("config", filepath.Join(os.Getenv("HOME"), kit.ConfigPath), "path to kit config"),
+		loader:       loader,
 		stdio: kit.Stdio{
 			In:  os.Stdin,
 			Out: os.Stdout,

@@ -2,6 +2,8 @@ package cli
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
@@ -64,6 +66,31 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	command, err := k.cli.GetCommand(ctx, plugin, cliArgs)
 	if err != nil {
 		return err
+	}
+
+	if *k.cli.autocomplete != "" {
+		ctx = kit.WithKit(ctx, k.cli)
+		completions := command.Autocomplete(ctx, *k.cli.autocomplete)
+		switch *k.cli.autocomplete {
+		case "bash":
+			var wordlist []string
+			for _, completion := range completions {
+				wordlist = append(wordlist, completion.Wordlist...)
+			}
+			fmt.Printf("%s", strings.Join(wordlist, " "))
+		case "zsh":
+			var shellCmds []string
+			for _, completion := range completions {
+				shellCmds = append(
+					shellCmds,
+					fmt.Sprintf("local -a %s", completion.Group),
+					fmt.Sprintf("%s=(%s)", completion.Group, strings.Join(completion.Wordlist, " ")),
+					fmt.Sprintf("_describe %s %s", completion.Group, completion.Group),
+				)
+			}
+			fmt.Printf("%s", strings.Join(shellCmds, ";"))
+		}
+		return nil
 	}
 
 	if !*k.cli.help {

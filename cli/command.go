@@ -11,16 +11,19 @@ import (
 	"github.com/hinshun/kit/config"
 )
 
-type VerifyFunc func(*Cli) error
+type VerifyFunc func(c *Cli) error
+
+type AutocompleteFunc func(ctx context.Context, input string) []kit.Completion
 
 type Command struct {
-	CommandPath []string
-	Usage       string
-	Args        []config.Arg
-	Flags       []config.Flag
-	Verify      VerifyFunc
-	Action      func(ctx context.Context) error
-	Commands    []*Command
+	CommandPath  []string
+	Usage        string
+	Args         []config.Arg
+	Flags        []config.Flag
+	Verify       VerifyFunc
+	Autocomplete AutocompleteFunc
+	Action       func(ctx context.Context) error
+	Commands     []*Command
 }
 
 func VerifyNamespace(cliCmd *Command, args []string, depth int) VerifyFunc {
@@ -76,5 +79,34 @@ func VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) VerifyFun
 		}
 
 		return nil
+	}
+}
+
+func AutocompleteNamespace(cliCmd *Command, args []string, depth int) AutocompleteFunc {
+	return func(ctx context.Context, input string) []kit.Completion {
+		var wordlist []string
+		for _, command := range cliCmd.Commands {
+			wordlist = append(wordlist, command.CommandPath[len(command.CommandPath)-1])
+		}
+
+		return []kit.Completion{
+			{
+				Group:    "commands",
+				Wordlist: wordlist,
+			},
+		}
+	}
+}
+
+func AutocompleteCommand(kitCmd kit.Command, args []string, depth int) AutocompleteFunc {
+	return func(ctx context.Context, input string) []kit.Completion {
+		posArgIndex := len(args[depth:])
+
+		kitArgs := kitCmd.Args()
+		if posArgIndex > len(kitArgs)-1 {
+			return nil
+		}
+
+		return kitArgs[posArgIndex].Autocomplete(ctx, input)
 	}
 }

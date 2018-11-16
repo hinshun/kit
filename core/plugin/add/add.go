@@ -9,6 +9,7 @@ import (
 
 	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
+	"github.com/hinshun/kit/core/plugin"
 )
 
 type command struct {
@@ -20,16 +21,16 @@ type command struct {
 }
 
 func (c *command) Usage() string {
-	return "Adds a plugin to kitty."
+	return "Adds a plugin to kit."
 }
 
 func (c *command) Args() []kit.Arg {
 	return []kit.Arg{
-		kit.CommandPathArg(
+		plugin.CommandPathArg(
 			"The command path to add the plugin.",
 			&c.path,
 		),
-		kit.ManifestArg(
+		plugin.ManifestArg(
 			"The content address or resolvable name for a plugin's metadata.",
 			&c.manifest,
 		),

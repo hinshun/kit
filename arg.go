@@ -1,24 +1,44 @@
 package kit
 
 import (
-	"github.com/hinshun/kit/args"
+	"context"
 )
 
 type Arg interface {
 	Type() string
 	Usage() string
 	Set(v string) error
-	Autocomplete(input string) []string
+	Autocomplete(ctx context.Context, input string) []Completion
+}
+
+type Completion struct {
+	Group    string
+	Wordlist []string
+}
+
+type stringArg struct {
+	name  string
+	usage string
+	path  *string
 }
 
 func StringArg(name, usage string, path *string) Arg {
-	return args.NewStringArg(name, usage, path)
+	return &stringArg{name, usage, path}
 }
 
-func CommandPathArg(usage string, path *string) Arg {
-	return args.NewCommandPathArg(usage, path)
+func (a *stringArg) Type() string {
+	return a.name
 }
 
-func ManifestArg(usage string, manifest *string) Arg {
-	return args.NewManifestArg(usage, manifest)
+func (a *stringArg) Usage() string {
+	return a.usage
+}
+
+func (a *stringArg) Set(v string) error {
+	*a.path = v
+	return nil
+}
+
+func (a *stringArg) Autocomplete(ctx context.Context, input string) []Completion {
+	return nil
 }

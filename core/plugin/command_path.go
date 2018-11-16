@@ -1,32 +1,34 @@
-package args
+package plugin
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
 	"github.com/fatih/color"
+	"github.com/hinshun/kit"
 )
 
 var CommandPathPattern = regexp.MustCompile(`/(\w+/)*(\w+\?)?`)
 
-type CommandPathArg struct {
+type commandPathArg struct {
 	usage string
 	path  *string
 }
 
-func NewCommandPathArg(usage string, path *string) *CommandPathArg {
-	return &CommandPathArg{usage, path}
+func CommandPathArg(usage string, path *string) kit.Arg {
+	return &commandPathArg{usage, path}
 }
 
-func (a *CommandPathArg) Type() string {
+func (a *commandPathArg) Type() string {
 	return "command path"
 }
 
-func (a *CommandPathArg) Usage() string {
+func (a *commandPathArg) Usage() string {
 	return a.usage
 }
 
-func (a *CommandPathArg) Set(v string) error {
+func (a *commandPathArg) Set(v string) error {
 	if !CommandPathPattern.MatchString(v) {
 		regex := color.New(color.FgBlue).Sprintf("%s", CommandPathPattern.String())
 		return fmt.Errorf("did not match regex %s", regex)
@@ -35,6 +37,6 @@ func (a *CommandPathArg) Set(v string) error {
 	return nil
 }
 
-func (a *CommandPathArg) Autocomplete(input string) []string {
+func (a *commandPathArg) Autocomplete(ctx context.Context, input string) []kit.Completion {
 	return nil
 }
