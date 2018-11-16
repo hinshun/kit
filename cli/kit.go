@@ -72,7 +72,7 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		ctx = kit.WithKit(ctx, k.cli)
 		completions := command.Autocomplete(ctx, *k.cli.autocomplete)
 		switch *k.cli.autocomplete {
-		case "bash":
+		case "bash", "fish":
 			var wordlist []string
 			for _, completion := range completions {
 				wordlist = append(wordlist, completion.Wordlist...)
