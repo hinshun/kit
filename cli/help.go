@@ -17,7 +17,7 @@ var HelpTemplate = `{{header "Usage:"}}
 {{header "Commands:"}}{{if not .Commands}}
   No commands in {{join (commandPath .NamespacePath) " "}}.{{end}}{{range .Commands}}
   {{join (commandPath (offset .CommandPath 1)) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
-		{{if eq .Usage ""}}A plugin namespace.{{else}}{{.Usage}}{{end}}{{range .Flags}}
+		{{.Usage}}{{range .Flags}}
 		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
 		{{arg .Type}}: {{.Usage}}{{end}}
 {{end}}{{if .UsageError}}

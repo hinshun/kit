@@ -36,25 +36,19 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 	switch manifest.Type {
 	case config.NamespaceManifest:
 		var commands []*Command
-		for _, plugin := range leaf.Plugins {
-			submanifest, err := l.GetManifest(ctx, plugin)
+		for _, subplugin := range leaf.Plugins {
+			submanifest, err := l.GetManifest(ctx, subplugin)
 			if err != nil {
 				return nil, err
 			}
 
 			names := make([]string, len(args[:depth])+1)
 			copy(names, args[:depth])
-			names[len(names)-1] = plugin.Name
-
-			// Override usage with user-defined usage if available.
-			usage := submanifest.Usage
-			if plugin.Usage != "" {
-				usage = plugin.Usage
-			}
+			names[len(names)-1] = subplugin.Name
 
 			commands = append(commands, &Command{
 				CommandPath: names,
-				Usage:       usage,
+				Usage:       namespaceUsage(subplugin, submanifest),
 				Args:        submanifest.Args,
 				Flags:       submanifest.Flags,
 			})
@@ -68,14 +62,8 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 
 		cliCmd := &Command{
 			CommandPath: commandPath,
+			Usage:       namespaceUsage(plugin, manifest),
 			Commands:    commands,
-		}
-
-		// Only override usage if it's not the root namespace.
-		if depth > 0 {
-			cliCmd.Usage = manifest.Usage
-		} else {
-			cliCmd.Usage = plugin.Usage
 		}
 
 		cliCmd.Verify = VerifyNamespace(cliCmd, args, depth)
@@ -212,4 +200,15 @@ func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.
 	}
 
 	return manifest, nil
+}
+
+func namespaceUsage(plugin config.Plugin, manifest config.Manifest) string {
+	usage := manifest.Usage
+	if plugin.Usage != "" {
+		usage = plugin.Usage
+	}
+	if usage == "" {
+		usage = "A plugin namespace."
+	}
+	return usage
 }
