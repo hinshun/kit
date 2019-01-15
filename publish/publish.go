@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
+	"github.com/hinshun/kitapi/kit"
 	shell "github.com/ipfs/go-ipfs-api"
 )
 

@@ -7,9 +7,10 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/hinshun/kit"
+	"github.com/hinshun/kit/api"
 	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit/core/plugin"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type command struct {
@@ -61,7 +62,7 @@ func (c *command) Flags() []kit.Flag {
 }
 
 func (c *command) Run(ctx context.Context) error {
-	configPath := kit.Kit(ctx).ConfigPath()
+	configPath := api.Kit(ctx).ConfigPath()
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return err
@@ -107,7 +108,7 @@ func (c *command) addPlugin(ctx context.Context, names []string, plugin config.P
 	}
 
 	// Get the manifest's plugins if any.
-	manifest, err := kit.Kit(ctx).GetManifest(ctx, plugin)
+	manifest, err := api.Kit(ctx).GetManifest(ctx, plugin)
 	if err != nil {
 		return plugin, err
 	}

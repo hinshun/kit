@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/content"
 	"github.com/hinshun/kit/content/localstore"
+	"github.com/hinshun/kitapi/kit"
 	shell "github.com/ipfs/go-ipfs-api"
 )
 

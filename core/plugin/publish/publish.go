@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/publish"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type command struct {

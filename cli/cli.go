@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type Cli struct {

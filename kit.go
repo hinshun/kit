@@ -1,49 +1,44 @@
-package kit
+package main
 
 import (
 	"context"
 	"fmt"
-	"io"
-	"path/filepath"
-	"plugin"
+	"os"
+	"syscall"
+
+	"github.com/hinshun/kit/cli"
+	"github.com/hinshun/kit/system/interrupt"
+	"github.com/hinshun/kit/system/profile"
 )
 
 var (
-	KitDir         = ".kit"
-	ConfigPath     = filepath.Join(KitDir, ConfigFilename)
-	ConfigFilename = "config.json"
+	EnvEnableProfiling = "KIT_PROF"
 )
 
-type Constructor func() (Command, error)
-
-type Command interface {
-	Usage() string
-	Args() []Arg
-	Flags() []Flag
-	Run(ctx context.Context) error
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "kit: %s\n", err)
+		os.Exit(1)
+	}
 }
 
-type Stdio struct {
-	In  io.Reader
-	Out io.Writer
-	Err io.Writer
-}
+func run() error {
+	var (
+		enableProfiling = os.Getenv(EnvEnableProfiling) != ""
+	)
 
-func OpenConstructor(path string) (Constructor, error) {
-	p, err := plugin.Open(path)
-	if err != nil {
-		return nil, err
+	ctx, cancel := context.WithCancel(context.Background())
+
+	ih := interrupt.NewInterruptHandler(cancel, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+	defer ih.Close()
+
+	if enableProfiling {
+		p, err := profile.NewProfile()
+		if err != nil {
+			return err
+		}
+		defer p.Close()
 	}
 
-	symbol, err := p.Lookup("New")
-	if err != nil {
-		return nil, err
-	}
-
-	constructor, ok := symbol.(*Constructor)
-	if !ok {
-		return nil, fmt.Errorf("symbol not a (*kit.Constructor)")
-	}
-
-	return *constructor, nil
+	return cli.NewKit().Run(ctx, os.Args[1:])
 }

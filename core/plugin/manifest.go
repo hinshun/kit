@@ -3,7 +3,7 @@ package plugin
 import (
 	"context"
 
-	"github.com/hinshun/kit"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type manifestArg struct {

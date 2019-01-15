@@ -7,8 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hinshun/kit"
+	"github.com/hinshun/kit/api"
 	"github.com/hinshun/kit/config"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type command struct{}
@@ -31,7 +32,7 @@ func (c *command) Run(ctx context.Context) error {
 		return err
 	}
 
-	configPath := kit.Kit(ctx).ConfigPath()
+	configPath := api.Kit(ctx).ConfigPath()
 	err = os.MkdirAll(filepath.Dir(configPath), 0775)
 	if err != nil {
 		return err

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/content"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type store struct {

@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/fatih/color"
-	"github.com/hinshun/kit"
+	"github.com/hinshun/kitapi/kit"
 )
 
 var CommandPathPattern = regexp.MustCompile(`/(\w+/)*(\w+\?)?`)

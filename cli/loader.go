@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	"runtime"
 
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit/content"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type Loader struct {
