@@ -31,7 +31,8 @@ func NewInterruptHandler(cancel context.CancelFunc, sigs ...os.Signal) io.Closer
 		count++
 		switch count {
 		case 1:
-			fmt.Println() // Prevent un-terminated ^C character in terminal
+			// Prevent un-terminated ^C character in terminal.
+			fmt.Println()
 
 			ih.wg.Add(1)
 			go func() {
@@ -46,6 +47,8 @@ func NewInterruptHandler(cancel context.CancelFunc, sigs ...os.Signal) io.Closer
 			if !ok {
 				os.Exit(-1)
 			}
+
+			// Fatal errors exit with 128+n, where "n" is the syscall.Signal code.
 			os.Exit(128 + int(syscallSig))
 		}
 	}
