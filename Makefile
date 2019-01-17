@@ -6,7 +6,7 @@ BINARIES=$(addprefix bin/,$(COMMANDS))
 
 kit: bin
 	@echo "$@"
-	@go install -ldflags "$(shell go run ./cmd/linker)" .
+	@go install -ldflags "$(shell go run ./cmd/linker /ip4/127.0.0.1/tcp/5001)" .
 
 bin: $(BINARIES)
 

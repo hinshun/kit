@@ -2,22 +2,28 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/hinshun/kit/publish"
+	shell "github.com/ipfs/go-ipfs-api"
 )
 
 func main() {
-	if err := run(); err != nil {
+	if len(os.Args) != 2 {
+		log.Fatal("linker: requires exactly 1 arg for ipfs multiaddr")
+	}
+
+	if err := run(os.Args[1]); err != nil {
 		fmt.Fprintf(os.Stderr, "linker: %s\n", err)
 		os.Exit(1)
 	}
 }
 
-func run() error {
+func run(host string) error {
 	pathsByPlugin := make(map[string][]string)
 
 	err := filepath.Walk("./bin", func(path string, info os.FileInfo, err error) error {
@@ -50,13 +56,14 @@ func run() error {
 	sort.Strings(names)
 
 	var ldflags []string
+	sh := shell.NewShell(host)
 	for _, name := range names {
 		paths, ok := pathsByPlugin[name]
 		if !ok {
 			return fmt.Errorf("did not find plugin '%s'", name)
 		}
 
-		digest, err := publish.Publish(paths)
+		digest, err := publish.Publish(sh, paths)
 		if err != nil {
 			return err
 		}

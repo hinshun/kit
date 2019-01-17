@@ -13,9 +13,7 @@ import (
 	shell "github.com/ipfs/go-ipfs-api"
 )
 
-func Publish(pluginPaths []string) (digest string, err error) {
-	sh := shell.NewLocalShell()
-
+func Publish(sh *shell.Shell, pluginPaths []string) (digest string, err error) {
 	manifest := config.Manifest{
 		Type: config.CommandManifest,
 	}

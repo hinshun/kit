@@ -7,10 +7,12 @@ import (
 
 	"github.com/hinshun/kit/publish"
 	"github.com/hinshun/kitapi/kit"
+	shell "github.com/ipfs/go-ipfs-api"
 )
 
 type command struct {
 	paths string
+	host  string
 }
 
 func (c *command) Usage() string {
@@ -28,12 +30,26 @@ func (c *command) Args() []kit.Arg {
 }
 
 func (c *command) Flags() []kit.Flag {
-	return nil
+	return []kit.Flag{
+		kit.StringFlag(
+			"host",
+			"The host address of the ipfs daemon to publish to.",
+			"",
+			&c.host,
+		),
+	}
 }
 
 func (c *command) Run(ctx context.Context) error {
+	var sh *shell.Shell
+	if c.host == "" {
+		sh = shell.NewLocalShell()
+	} else {
+		sh = shell.NewShell(c.host)
+	}
+
 	pluginPaths := strings.Split(c.paths, ",")
-	digest, err := publish.Publish(pluginPaths)
+	digest, err := publish.Publish(sh, pluginPaths)
 	if err != nil {
 		return err
 	}
