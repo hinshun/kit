@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/hinshun/kit/config"
@@ -62,7 +64,7 @@ func (c *command) Flags() []kit.Flag {
 }
 
 func (c *command) Run(ctx context.Context) error {
-	configPath := introspect.Kit(ctx).ConfigPath()
+	configPath := filepath.Join(os.Getenv("HOME"), kit.ConfigPath)
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return err

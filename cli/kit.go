@@ -3,6 +3,8 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/hinshun/kit/config"
@@ -10,6 +12,7 @@ import (
 	"github.com/hinshun/kit/content/kitstore"
 	"github.com/hinshun/kit/content/localstore"
 	"github.com/hinshun/kit/introspect"
+	"github.com/hinshun/kitapi/kit"
 )
 
 type Kit struct {
@@ -36,7 +39,8 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	cfg, err := config.New(k.cli.ConfigPath())
+	configPath := filepath.Join(os.Getenv("HOME"), kit.ConfigPath)
+	cfg, err := config.New(configPath)
 	if err != nil {
 		return err
 	}
@@ -68,10 +72,10 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	if *k.cli.autocomplete != "" {
+	if k.cli.options.Autocomplete != "" {
 		ctx = introspect.WithKit(ctx, k.cli)
-		completions := command.Autocomplete(ctx, *k.cli.autocomplete)
-		switch *k.cli.autocomplete {
+		completions := command.Autocomplete(ctx, k.cli.options.Autocomplete)
+		switch k.cli.options.Autocomplete {
 		case "bash", "fish":
 			var wordlist []string
 			for _, completion := range completions {
@@ -93,14 +97,14 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	if !*k.cli.help {
+	if !k.cli.options.Help {
 		err = command.Verify(k.cli)
 		if err != nil {
 			k.cli.UsageError = err
 		}
 	}
 
-	if *k.cli.help || k.cli.UsageError != nil || command.Action == nil {
+	if k.cli.options.Help || k.cli.UsageError != nil || command.Action == nil {
 		if command.Action == nil {
 			k.cli.SetNamespaceUsage(command.CommandPath, command.Usage)
 			return k.cli.PrintHelp(command.Commands)

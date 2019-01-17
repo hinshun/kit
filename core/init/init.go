@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/hinshun/kit/config"
-	"github.com/hinshun/kit/introspect"
 	"github.com/hinshun/kitapi/kit"
 )
 
@@ -32,7 +31,7 @@ func (c *command) Run(ctx context.Context) error {
 		return err
 	}
 
-	configPath := introspect.Kit(ctx).ConfigPath()
+	configPath := filepath.Join(os.Getenv("HOME"), kit.ConfigPath)
 	err = os.MkdirAll(filepath.Dir(configPath), 0775)
 	if err != nil {
 		return err

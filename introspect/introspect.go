@@ -8,7 +8,8 @@ import (
 
 type KitAPI interface {
 	GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error)
-	ConfigPath() string
+	Options() Options
+	Theme() Theme
 }
 
 type kitKey struct{}
