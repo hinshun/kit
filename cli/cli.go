@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fatih/color"
 	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kitapi/kit"
 )
@@ -26,7 +25,7 @@ type Cli struct {
 	loader *Loader
 	stdio  kit.Stdio
 
-	headerColor, usageErrorColor, commandColor, argColor, flagColor *color.Color
+	theme *Theme
 }
 
 func NewCli(loader *Loader) *Cli {
@@ -44,11 +43,7 @@ func NewCli(loader *Loader) *Cli {
 			Out: os.Stdout,
 			Err: os.Stderr,
 		},
-		headerColor:     color.New(color.Bold, color.Underline),
-		usageErrorColor: color.New(color.FgRed, color.Bold, color.Underline),
-		commandColor:    color.New(color.FgWhite, color.Underline),
-		argColor:        color.New(color.FgYellow),
-		flagColor:       color.New(color.FgGreen),
+		theme: NewDefaultTheme(),
 	}
 }
 

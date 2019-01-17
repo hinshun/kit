@@ -61,8 +61,8 @@ func VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) VerifyFun
 			return fmt.Errorf(
 				"%s requires %s args but got %s args.",
 				strings.Join(c.DecorateCommandPath(cliCmd.CommandPath), " "),
-				c.argColor.Sprintf("%d", len(cliCmd.Args)),
-				c.argColor.Sprintf("%d", len(parsedArgs)),
+				c.theme.Value.Sprintf("%d", len(cliCmd.Args)),
+				c.theme.Value.Sprintf("%d", len(parsedArgs)),
 			)
 		}
 
@@ -71,7 +71,7 @@ func VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) VerifyFun
 			if err != nil {
 				return fmt.Errorf(
 					"%s is not a valid %s: %s",
-					c.argColor.Sprint(parsedArgs[i]),
+					c.theme.Value.Sprint(parsedArgs[i]),
 					c.DecorateArg(arg.Type()),
 					err,
 				)

@@ -66,11 +66,11 @@ func appendStr(strs []string, elems ...string) []string {
 }
 
 func (c *Cli) DecorateHeader(header string) string {
-	return c.headerColor.Sprint(header)
+	return c.theme.Title.Sprint(header)
 }
 
 func (c *Cli) DecorateUsageError(header string) string {
-	return c.usageErrorColor.Sprint(header)
+	return c.theme.Error.Sprint(header)
 }
 
 func (c *Cli) DecorateCommandPath(commandPath []string) []string {
@@ -82,7 +82,7 @@ func (c *Cli) DecorateCommandPath(commandPath []string) []string {
 }
 
 func (c *Cli) DecorateCommand(command string) string {
-	return c.commandColor.Sprint(command)
+	return c.theme.Keyword.Sprint(command)
 }
 
 func (c *Cli) DecorateArgs(inputs []config.Arg) []string {
@@ -94,11 +94,11 @@ func (c *Cli) DecorateArgs(inputs []config.Arg) []string {
 }
 
 func (c *Cli) DecorateArg(arg string) string {
-	return c.argColor.Sprintf("<%s>", arg)
+	return c.theme.Value.Sprintf("<%s>", arg)
 }
 
 func (c *Cli) DecorateGlobalFlag(flag string) string {
-	return fmt.Sprintf("[%s]", c.flagColor.Sprint(flag))
+	return fmt.Sprintf("[%s]", c.theme.Option.Sprint(flag))
 }
 
 func (c *Cli) DecorateFlags(inputs []config.Flag) []string {
@@ -116,5 +116,5 @@ func (c *Cli) DecorateFlag(flag config.Flag) string {
 	} else {
 		output = fmt.Sprintf("--%s <%s>", flag.Name, flag.Type)
 	}
-	return fmt.Sprintf("[%s]", c.flagColor.Sprint(output))
+	return fmt.Sprintf("[%s]", c.theme.Option.Sprint(output))
 }
