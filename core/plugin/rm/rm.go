@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/hinshun/kit/api"
 	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit/core/plugin"
+	"github.com/hinshun/kit/introspect"
 	"github.com/hinshun/kitapi/kit"
 )
 
@@ -43,7 +43,7 @@ func (c *command) Flags() []kit.Flag {
 }
 
 func (c *command) Run(ctx context.Context) error {
-	configPath := api.Kit(ctx).ConfigPath()
+	configPath := introspect.Kit(ctx).ConfigPath()
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (c *command) removePlugin(ctx context.Context, names []string, plugin confi
 	}
 
 	// Get the manifest's plugins if any.
-	manifest, err := api.Kit(ctx).GetManifest(ctx, plugin)
+	manifest, err := introspect.Kit(ctx).GetManifest(ctx, plugin)
 	if err != nil {
 		return plugin, err
 	}

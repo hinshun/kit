@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hinshun/kit/api"
 	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit/content/ipfsstore"
 	"github.com/hinshun/kit/content/kitstore"
 	"github.com/hinshun/kit/content/localstore"
+	"github.com/hinshun/kit/introspect"
 )
 
 type Kit struct {
@@ -69,7 +69,7 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	}
 
 	if *k.cli.autocomplete != "" {
-		ctx = api.WithKit(ctx, k.cli)
+		ctx = introspect.WithKit(ctx, k.cli)
 		completions := command.Autocomplete(ctx, *k.cli.autocomplete)
 		switch *k.cli.autocomplete {
 		case "bash", "fish":
@@ -116,6 +116,6 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		}
 	}
 
-	ctx = api.WithKit(ctx, k.cli)
+	ctx = introspect.WithKit(ctx, k.cli)
 	return command.Action(ctx)
 }

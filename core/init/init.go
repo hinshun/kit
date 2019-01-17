@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hinshun/kit/api"
 	"github.com/hinshun/kit/config"
+	"github.com/hinshun/kit/introspect"
 	"github.com/hinshun/kitapi/kit"
 )
 
@@ -32,7 +32,7 @@ func (c *command) Run(ctx context.Context) error {
 		return err
 	}
 
-	configPath := api.Kit(ctx).ConfigPath()
+	configPath := introspect.Kit(ctx).ConfigPath()
 	err = os.MkdirAll(filepath.Dir(configPath), 0775)
 	if err != nil {
 		return err
