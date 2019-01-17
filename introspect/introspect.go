@@ -6,7 +6,7 @@ import (
 	"github.com/hinshun/kit/config"
 )
 
-type KitAPI interface {
+type API interface {
 	GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error)
 	Options() Options
 	Theme() Theme
@@ -14,12 +14,12 @@ type KitAPI interface {
 
 type kitKey struct{}
 
-func WithKit(ctx context.Context, api KitAPI) context.Context {
+func WithKit(ctx context.Context, api API) context.Context {
 	return context.WithValue(ctx, kitKey{}, api)
 }
 
-func Kit(ctx context.Context) KitAPI {
-	api, ok := ctx.Value(kitKey{}).(KitAPI)
+func Kit(ctx context.Context) API {
+	api, ok := ctx.Value(kitKey{}).(API)
 	if !ok {
 		return nil
 	}
