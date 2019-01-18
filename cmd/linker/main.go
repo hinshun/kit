@@ -42,6 +42,10 @@ func run(host string) error {
 		}
 
 		plugin := filepath.Join(filepath.Dir(path), parts[0])
+		if plugin == "bin/kit" {
+			return nil
+		}
+
 		pathsByPlugin[plugin] = append(pathsByPlugin[plugin], path)
 		return nil
 	})

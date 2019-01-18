@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -eu
+
+export LDFLAGS="\
+    -w \
+    ${LDFLAGS:-} \
+"
+
+GOOS="${GOOS:-$(go env GOHOSTOS)}"
+GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
+BUILDMODE="${BUILDMODE:-default}"
+export TARGET="${GOPATH}/bin/$NAME-$GOOS-$GOARCH"

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#
+# Build a binary for all supported platforms
+#
+
+set -eu -o pipefail
+
+export SHELL=bash
+export SOURCE="$1"
+export NAME="$(basename $1)"
+
+jobs=(
+    "/cross/osx" \
+    "GOOS=linux GOARCH=amd64 /cross/binary" \
+)
+
+echo "Building binaries for all platforms"
+parallel --no-notice ::: "${jobs[@]}"

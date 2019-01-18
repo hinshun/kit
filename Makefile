@@ -1,20 +1,38 @@
 COMMANDS=init plugin/add plugin/rm plugin/publish
 
-BINARIES=$(addprefix bin/,$(COMMANDS))
+CORE=$(addprefix core/,$(COMMANDS))
 
-.PHONY: clean
+.PHONY: all local mod kit plugins cross clean
 
-kit: bin
+all: plugins kit
+
+local:
+	@echo "@"
+	@make kit GATEWAY=127.0.0.1
+
+mod:
 	@echo "$@"
-	@go install -ldflags "$(shell go run ./cmd/linker /ip4/127.0.0.1/tcp/5001)" .
+	@docker build -t mod -f dockerfiles/kit/Dockerfile --target mod .
 
-bin: $(BINARIES)
+kit: mod
+	@echo "$@"
+	@make cross PKG="./cmd/kit" BUILDMODE="default" LDFLAGS="-X github.com/hinshun/kit/content/ipfsstore.Gateway=$(GATEWAY) $$(docker run --rm -it -v $$(pwd):/src -w /src --network host mod go run ./cmd/linker /ip4/$(GATEWAY)/tcp/5001)"
+
+plugins: $(CORE)
 
 FORCE:
 
-bin/%: core/% FORCE
+core/%: FORCE
 	@echo "$@"
-	@go build -buildmode=plugin -o $@-linux-amd64 ./$<
+	@make cross PKG="./$@" BUILDMODE="plugin"
+
+cross:
+	@echo "$@"
+	@docker build -t kit -f dockerfiles/kit/Dockerfile --target build --build-arg PKG="$(PKG)" --build-arg BUILDMODE="$(BUILDMODE)" --build-arg LDFLAGS="$(LDFLAGS)" .
+	@docker rm kit || true
+	@docker create --name kit kit bash
+	@docker cp kit:/root/go/bin/. bin
+	@docker rm kit
 
 clean:
 	@echo "$@"

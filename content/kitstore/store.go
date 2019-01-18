@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	InitDigest          string
-	PluginDigest        = "QmetM7PMkuGJtwBS5Lw57cCfMDSYk4UHZRPGNzq9JtGLCP"
-	PluginAddDigest     string
-	PluginRmDigest      string
-	PluginPublishDigest string
+	InitDigest    string
+	PluginDigest  = "QmetM7PMkuGJtwBS5Lw57cCfMDSYk4UHZRPGNzq9JtGLCP"
+	AddDigest     string
+	RmDigest      string
+	PublishDigest string
 )
 
 type store struct {
@@ -30,11 +30,11 @@ func (s *store) Get(ctx context.Context, digest string) (string, error) {
 	case "/kit/plugin":
 		digest = PluginDigest
 	case "/kit/plugin/add":
-		digest = PluginAddDigest
+		digest = AddDigest
 	case "/kit/plugin/rm":
-		digest = PluginRmDigest
+		digest = RmDigest
 	case "/kit/plugin/publish":
-		digest = PluginPublishDigest
+		digest = PublishDigest
 	}
 
 	return s.Store.Get(ctx, digest)

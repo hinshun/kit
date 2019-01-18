@@ -13,6 +13,10 @@ import (
 	"github.com/hinshun/kitapi/kit"
 )
 
+var (
+	Gateway = "localhost"
+)
+
 type store struct {
 }
 
@@ -24,7 +28,7 @@ func (s *store) Get(ctx context.Context, digest string) (string, error) {
 	dir := filepath.Join(os.Getenv("HOME"), kit.KitDir, "store", localstore.NextToLast(digest))
 
 	filename := filepath.Join(dir, digest)
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/ipfs/%s", digest))
+	resp, err := http.Get(fmt.Sprintf("http://%s:8080/ipfs/%s", Gateway, digest))
 	if err != nil {
 		return filename, err
 	}
