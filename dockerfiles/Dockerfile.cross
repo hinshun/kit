@@ -1,0 +1,2 @@
+FROM hinshun/go-cross:mod AS mod
+FROM hinshun/go-cross:build
