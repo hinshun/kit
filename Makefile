@@ -2,7 +2,7 @@ COMMANDS=init plugin/add plugin/rm plugin/publish
 
 CORE=$(addprefix core/,$(COMMANDS))
 
-.PHONY: all local mod kit plugins cross clean
+.PHONY: all local kit plugins cross clean
 
 all: plugins local
 
