@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -8,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit/publish"
 	shell "github.com/ipfs/go-ipfs-api"
 )
@@ -59,8 +62,30 @@ func run(host string) error {
 	}
 	sort.Strings(names)
 
-	var ldflags []string
 	sh := shell.NewShell(host)
+
+	pluginNamespace := config.Plugin{
+		Name:     "plugin",
+		Manifest: "/kit/plugin",
+	}
+
+	content, err := json.MarshalIndent(pluginNamespace, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	digest, err := sh.Add(bytes.NewReader(content))
+	if err != nil {
+		return err
+	}
+
+	ldflags := []string{
+		fmt.Sprintf(
+			"-X github.com/hinshun/kit/content/kitstore.PluginDigest=%s",
+			digest,
+		),
+	}
+
 	for _, name := range names {
 		paths, ok := pathsByPlugin[name]
 		if !ok {

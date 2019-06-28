@@ -10,9 +10,9 @@ local:
 	@echo "@"
 	@make kit GATEWAY=127.0.0.1
 
-kit:
+kit: plugins
 	@echo "$@"
-	@make cross PKG="./cmd/kit" BUILDMODE="default" LDFLAGS="-X github.com/hinshun/kit/content/ipfsstore.Gateway=$(GATEWAY) $$(docker run --rm -it -v $$(pwd):/src -w /src --network host mod go run ./cmd/linker /ip4/$(GATEWAY)/tcp/5001)"
+	make cross PKG="./cmd/kit" BUILDMODE="default" LDFLAGS="-X github.com/hinshun/kit/content/ipfsstore.Gateway=$(GATEWAY) $$(docker run --rm -it -v $$(pwd):/src -w /src --network host kit go run ./cmd/linker /ip4/$(GATEWAY)/tcp/5001)"
 
 plugins: $(CORE)
 

@@ -8,7 +8,7 @@ import (
 
 var (
 	InitDigest    string
-	PluginDigest  = "QmetM7PMkuGJtwBS5Lw57cCfMDSYk4UHZRPGNzq9JtGLCP"
+	PluginDigest  string
 	AddDigest     string
 	RmDigest      string
 	PublishDigest string
