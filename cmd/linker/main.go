@@ -64,12 +64,26 @@ func run(host string) error {
 
 	sh := shell.NewShell(host)
 
-	pluginNamespace := config.Plugin{
-		Name:     "plugin",
-		Manifest: "/kit/plugin",
+	pluginManifest := config.Manifest{
+		Usage: "Manage kit plugins.",
+		Type: config.NamespaceManifest,
+		Plugins: config.Plugins{
+			{
+				Name: "add",
+				Manifest: "/kit/plugin/add",
+			},
+			{
+				Name: "rm",
+				Manifest: "/kit/plugin/rm",
+			},
+			{
+				Name: "publish",
+				Manifest: "/kit/plugin/publish",
+			},
+		},
 	}
 
-	content, err := json.MarshalIndent(pluginNamespace, "", "    ")
+	content, err := json.MarshalIndent(pluginManifest, "", "    ")
 	if err != nil {
 		return err
 	}
