@@ -12,6 +12,7 @@ var (
 
 // Config
 type Config struct {
+	Path    string  `json:"path,omitempty"`
 	Plugins Plugins `json:"plugins,omitempty"`
 }
 

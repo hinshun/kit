@@ -1,5 +1,4 @@
 package cli
-
 import (
 	"context"
 	"fmt"
@@ -27,11 +26,6 @@ func NewKit() *Kit {
 }
 
 func (k *Kit) Run(ctx context.Context, args []string) error {
-	err := k.cli.Parse(args)
-	if err != nil {
-		return err
-	}
-
 	configPath := filepath.Join(os.Getenv("HOME"), ConfigPath)
 	cfg, err := config.New(configPath)
 	if err != nil {
@@ -56,6 +50,11 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	merged := manifest.Plugins.Merge(plugin.Plugins)
 	if len(merged) == 0 {
 		plugin.Plugins = config.InitConfig.Plugins
+	}
+
+	err = k.cli.Parse(args)
+	if err != nil {
+		return err
 	}
 
 	command, err := k.cli.GetCommand(ctx, plugin, k.cli.Args())

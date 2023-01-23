@@ -43,7 +43,6 @@ func VerifyNamespace(cliCmd *Command, args []string, depth int) VerifyFunc {
 func VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) VerifyFunc {
 	return func(c *Cli) error {
 		name := cliCmd.CommandPath[len(cliCmd.CommandPath)-1]
-
 		flagSet := flag.NewFlagSet(name, flag.ContinueOnError)
 		flagSet.SetOutput(ioutil.Discard)
 

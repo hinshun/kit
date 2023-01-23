@@ -3,12 +3,14 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"runtime"
+	"syscall"
 
-	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit"
+	"github.com/hinshun/kit/config"
 )
 
 type Loader struct {
@@ -30,7 +32,48 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 	}
 
 	switch manifest.Type {
-	case config.NamespaceManifest:
+	case config.ManifestExternal:
+		path, err := manifest.MatchPlatform(runtime.GOOS, runtime.GOARCH)
+		if err != nil {
+			return nil, err
+		}
+		return nil, syscall.Exec(path, args[depth:], os.Environ())
+	case config.ManifestCommand:
+		path, err := manifest.MatchPlatform(runtime.GOOS, runtime.GOARCH)
+		if err != nil {
+			return nil, err
+		}
+
+		constructor, err := kit.OpenConstructor(path)
+		if err != nil {
+			return nil, err
+		}
+
+		kitCmd, err := constructor()
+		if err != nil {
+			return nil, err
+		}
+
+		// Override usage with user-defined usage if available.
+		usage := manifest.Usage
+		if leaf.Usage != "" {
+			usage = leaf.Usage
+		}
+
+		cliCmd := &Command{
+			CommandPath: args[:depth],
+			Usage:       usage,
+			Args:        manifest.Args,
+			Flags:       manifest.Flags,
+			Action: func(ctx context.Context) error {
+				return kitCmd.Run(ctx)
+			},
+		}
+
+		cliCmd.Verify = VerifyCommand(cliCmd, kitCmd, args[depth:])
+		cliCmd.Autocomplete = AutocompleteCommand(kitCmd, args, depth)
+		return cliCmd, nil
+	case config.ManifestNamespace:
 		var commands []*Command
 		for _, subplugin := range leaf.Plugins {
 			submanifest, err := l.GetManifest(ctx, subplugin)
@@ -64,49 +107,6 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 
 		cliCmd.Verify = VerifyNamespace(cliCmd, args, depth)
 		cliCmd.Autocomplete = AutocompleteNamespace(cliCmd, args, depth)
-		return cliCmd, nil
-	case config.CommandManifest:
-		var path string
-		for _, platform := range manifest.Platforms {
-			if platform.Architecture == runtime.GOARCH &&
-				platform.OS == runtime.GOOS {
-				path = platform.Digest
-				break
-			}
-		}
-
-		if path == "" {
-			return nil, fmt.Errorf("unable to find digest for platform %s %s", runtime.GOARCH, runtime.GOOS)
-		}
-
-		constructor, err := kit.OpenConstructor(path)
-		if err != nil {
-			return nil, err
-		}
-
-		kitCmd, err := constructor()
-		if err != nil {
-			return nil, err
-		}
-
-		// Override usage with user-defined usage if available.
-		usage := manifest.Usage
-		if leaf.Usage != "" {
-			usage = leaf.Usage
-		}
-
-		cliCmd := &Command{
-			CommandPath: args[:depth],
-			Usage:       usage,
-			Args:        manifest.Args,
-			Flags:       manifest.Flags,
-			Action: func(ctx context.Context) error {
-				return kitCmd.Run(ctx)
-			},
-		}
-
-		cliCmd.Verify = VerifyCommand(cliCmd, kitCmd, args[depth:])
-		cliCmd.Autocomplete = AutocompleteCommand(kitCmd, args, depth)
 		return cliCmd, nil
 	default:
 		return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
@@ -156,12 +156,12 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 	}
 
 	switch manifest.Type {
-	case config.NamespaceManifest:
-		// If it's a namespace, there are more possible matches.
-		return l.findPlugin(ctx, child, args, depth)
-	case config.CommandManifest:
+	case config.ManifestExternal, config.ManifestCommand:
 		// If it's a command, the rest of args are for the command.
 		return child, depth, nil
+	case config.ManifestNamespace:
+		// If it's a namespace, there are more possible matches.
+		return l.findPlugin(ctx, child, args, depth)
 	default:
 		return child, 0, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 	}
@@ -171,22 +171,30 @@ func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.
 	if plugin.Path == "" {
 		return config.Manifest{
 			Usage:   plugin.Usage,
-			Type:    config.NamespaceManifest,
+			Type:    config.ManifestNamespace,
 			Plugins: plugin.Plugins,
 		}, nil
 	}
 
-	data, err := ioutil.ReadFile(plugin.Path)
+	f, err := os.Open(plugin.Path)
 	if err != nil {
 		return config.Manifest{}, err
 	}
+	defer f.Close()
 
 	var manifest config.Manifest
-	err = json.Unmarshal(data, &manifest)
+	err = json.NewDecoder(f).Decode(&manifest)
 	if err != nil {
-		return config.Manifest{}, err
+		if errors.Is(err, &json.SyntaxError{}) {
+			return config.Manifest{}, err
+		}
+		manifest.Type = config.ManifestExternal
+		manifest.Platforms = append(manifest.Platforms, config.Platform{
+			OS:   runtime.GOOS,
+			Arch: runtime.GOARCH,
+			Path: plugin.Path,
+		})
 	}
-
 	return manifest, nil
 }
 

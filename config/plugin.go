@@ -7,10 +7,11 @@ import (
 )
 
 type Plugin struct {
-	Name    string  `json:"name"`
-	Usage   string  `json:"usage,omitempty"`
-	Path    string  `json:"path,omitempty"`
-	Plugins Plugins `json:"plugins,omitempty"`
+	Name      string  `json:"name"`
+	Usage     string  `json:"usage,omitempty"`
+	Path      string  `json:"path,omitempty"`
+	Tombstone bool    `json:"tombstone,omitempty"`
+	Plugins   Plugins `json:"plugins,omitempty"`
 }
 
 func (p Plugin) FindParent(commandPath []string) Plugin {
