@@ -7,15 +7,14 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
 )
 
 type VerifyFunc func(c *Cli) error
 
-type AutocompleteFunc func(ctx context.Context, input string) []kit.Completion
+type AutocompleteFunc func(ctx context.Context, input string) []Completion
 
-type Command struct {
+type Plugin struct {
 	CommandPath  []string
 	Usage        string
 	Args         []config.Arg
@@ -23,15 +22,15 @@ type Command struct {
 	Verify       VerifyFunc
 	Autocomplete AutocompleteFunc
 	Action       func(ctx context.Context) error
-	Commands     []*Command
+	Plugins      []*Plugin
 }
 
-func VerifyNamespace(cliCmd *Command, args []string, depth int) VerifyFunc {
+func VerifyNamespace(plugin *Plugin, args []string, depth int) VerifyFunc {
 	return func(c *Cli) error {
 		if len(args[depth:]) > 0 {
 			return fmt.Errorf(
 				"%s does not have command %s",
-				strings.Join(c.DecorateCommandPath(cliCmd.CommandPath), " "),
+				strings.Join(c.DecorateCommandPath(plugin.CommandPath), " "),
 				strings.Join(c.DecorateCommandPath(args[depth:]), " "),
 			)
 		}
@@ -40,9 +39,9 @@ func VerifyNamespace(cliCmd *Command, args []string, depth int) VerifyFunc {
 	}
 }
 
-func VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) VerifyFunc {
+func VerifyCommand(plugin *Plugin, kitCmd Command, args []string) VerifyFunc {
 	return func(c *Cli) error {
-		name := cliCmd.CommandPath[len(cliCmd.CommandPath)-1]
+		name := plugin.CommandPath[len(plugin.CommandPath)-1]
 		flagSet := flag.NewFlagSet(name, flag.ContinueOnError)
 		flagSet.SetOutput(ioutil.Discard)
 
@@ -56,11 +55,11 @@ func VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) VerifyFun
 		}
 
 		parsedArgs := flagSet.Args()
-		if len(cliCmd.Args) != len(parsedArgs) {
+		if len(plugin.Args) != len(parsedArgs) {
 			return fmt.Errorf(
 				"%s requires %s args but got %s args.",
-				strings.Join(c.DecorateCommandPath(cliCmd.CommandPath), " "),
-				c.theme.Value.Sprintf("%d", len(cliCmd.Args)),
+				strings.Join(c.DecorateCommandPath(plugin.CommandPath), " "),
+				c.theme.Value.Sprintf("%d", len(plugin.Args)),
 				c.theme.Value.Sprintf("%d", len(parsedArgs)),
 			)
 		}
@@ -81,14 +80,14 @@ func VerifyCommand(cliCmd *Command, kitCmd kit.Command, args []string) VerifyFun
 	}
 }
 
-func AutocompleteNamespace(cliCmd *Command, args []string, depth int) AutocompleteFunc {
-	return func(ctx context.Context, input string) []kit.Completion {
+func AutocompleteNamespace(plugin *Plugin, args []string, depth int) AutocompleteFunc {
+	return func(ctx context.Context, input string) []Completion {
 		var wordlist []string
-		for _, command := range cliCmd.Commands {
-			wordlist = append(wordlist, command.CommandPath[len(command.CommandPath)-1])
+		for _, plugin := range plugin.Plugins {
+			wordlist = append(wordlist, plugin.CommandPath[len(plugin.CommandPath)-1])
 		}
 
-		return []kit.Completion{
+		return []Completion{
 			{
 				Group:    "commands",
 				Wordlist: wordlist,
@@ -97,15 +96,12 @@ func AutocompleteNamespace(cliCmd *Command, args []string, depth int) Autocomple
 	}
 }
 
-func AutocompleteCommand(kitCmd kit.Command, args []string, depth int) AutocompleteFunc {
-	return func(ctx context.Context, input string) []kit.Completion {
+func AutocompleteCommand(cmd Command, args []string, depth int) AutocompleteFunc {
+	return func(ctx context.Context, input string) []Completion {
 		posArgIndex := len(args[depth:])
-
-		kitArgs := kitCmd.Args()
-		if posArgIndex > len(kitArgs)-1 {
+		if posArgIndex > len(cmd.Args())-1 {
 			return nil
 		}
-
-		return kitArgs[posArgIndex].Autocomplete(ctx, input)
+		return cmd.Args()[posArgIndex].Autocomplete(ctx, input)
 	}
 }

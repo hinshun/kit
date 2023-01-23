@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
 )
 
@@ -20,7 +19,7 @@ func NewLoader() *Loader {
 	return &Loader{}
 }
 
-func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []string) (*Command, error) {
+func (l *Loader) GetPlugin(ctx context.Context, plugin config.Plugin, args []string) (*Plugin, error) {
 	leaf, depth, err := l.FindPlugin(ctx, plugin, args)
 	if err != nil {
 		return nil, err
@@ -44,12 +43,12 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 			return nil, err
 		}
 
-		constructor, err := kit.OpenConstructor(path)
+		constructor, err := OpenConstructor(path)
 		if err != nil {
 			return nil, err
 		}
 
-		kitCmd, err := constructor()
+		cmd, err := constructor()
 		if err != nil {
 			return nil, err
 		}
@@ -60,21 +59,21 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 			usage = leaf.Usage
 		}
 
-		cliCmd := &Command{
+		resolved := &Plugin{
 			CommandPath: args[:depth],
 			Usage:       usage,
 			Args:        manifest.Args,
 			Flags:       manifest.Flags,
 			Action: func(ctx context.Context) error {
-				return kitCmd.Run(ctx)
+				return cmd.Run(ctx)
 			},
 		}
 
-		cliCmd.Verify = VerifyCommand(cliCmd, kitCmd, args[depth:])
-		cliCmd.Autocomplete = AutocompleteCommand(kitCmd, args, depth)
-		return cliCmd, nil
+		resolved.Verify = VerifyCommand(resolved, cmd, args[depth:])
+		resolved.Autocomplete = AutocompleteCommand(cmd, args, depth)
+		return resolved, nil
 	case config.ManifestNamespace:
-		var commands []*Command
+		var plugins []*Plugin
 		for _, subplugin := range leaf.Plugins {
 			submanifest, err := l.GetManifest(ctx, subplugin)
 			if err != nil {
@@ -85,7 +84,7 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 			copy(names, args[:depth])
 			names[len(names)-1] = subplugin.Name
 
-			commands = append(commands, &Command{
+			plugins = append(plugins, &Plugin{
 				CommandPath: names,
 				Usage:       namespaceUsage(subplugin, submanifest),
 				Args:        submanifest.Args,
@@ -99,15 +98,15 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 			commandPath = []string{plugin.Name}
 		}
 
-		cliCmd := &Command{
+		resolved := &Plugin{
 			CommandPath: commandPath,
 			Usage:       namespaceUsage(plugin, manifest),
-			Commands:    commands,
+			Plugins:    plugins,
 		}
 
-		cliCmd.Verify = VerifyNamespace(cliCmd, args, depth)
-		cliCmd.Autocomplete = AutocompleteNamespace(cliCmd, args, depth)
-		return cliCmd, nil
+		resolved.Verify = VerifyNamespace(resolved, args, depth)
+		resolved.Autocomplete = AutocompleteNamespace(resolved, args, depth)
+		return resolved, nil
 	default:
 		return nil, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 	}

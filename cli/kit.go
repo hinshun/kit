@@ -57,14 +57,14 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	command, err := k.cli.GetCommand(ctx, plugin, k.cli.Args())
+	resolved, err := k.cli.GetPlugin(ctx, plugin, k.cli.Args())
 	if err != nil {
 		return err
 	}
 
 	if k.cli.options.Autocomplete != "" {
 		// ctx = introspect.WithKit(ctx, k.cli)
-		completions := command.Autocomplete(ctx, k.cli.options.Autocomplete)
+		completions := resolved.Autocomplete(ctx, k.cli.options.Autocomplete)
 		switch k.cli.options.Autocomplete {
 		case "bash", "fish":
 			var wordlist []string
@@ -88,28 +88,28 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	}
 
 	if !k.cli.options.Help {
-		err = command.Verify(k.cli)
+		err = resolved.Verify(k.cli)
 		if err != nil {
 			k.cli.UsageError = err
 		}
 	}
 
-	if k.cli.options.Help || k.cli.UsageError != nil || command.Action == nil {
-		if command.Action == nil {
-			k.cli.SetNamespaceUsage(command.CommandPath, command.Usage)
-			return k.cli.PrintHelp(command.Commands)
+	if k.cli.options.Help || k.cli.UsageError != nil || resolved.Action == nil {
+		if resolved.Action == nil {
+			k.cli.SetNamespaceUsage(resolved.CommandPath, resolved.Usage)
+			return k.cli.printHelp(resolved.Plugins)
 		} else {
-			namespace := config.Plugin{Plugins: merged}.FindParent(command.CommandPath)
+			namespace := config.Plugin{Plugins: merged}.FindParent(resolved.CommandPath)
 			namespaceManifest, err := k.cli.GetManifest(ctx, namespace)
 			if err != nil {
 				return err
 			}
 
-			k.cli.SetNamespaceUsage(command.CommandPath[:len(command.CommandPath)-1], namespaceManifest.Usage)
-			return k.cli.PrintHelp([]*Command{command})
+			k.cli.SetNamespaceUsage(resolved.CommandPath[:len(resolved.CommandPath)-1], namespaceManifest.Usage)
+			return k.cli.printHelp([]*Plugin{resolved})
 		}
 	}
 
 	// ctx = introspect.WithKit(ctx, k.cli)
-	return command.Action(ctx)
+	return resolved.Action(ctx)
 }

@@ -14,8 +14,8 @@ var HelpTemplate = `{{header "Usage:"}}
 
 	{{command "kit"}} {{globalFlag "global options"}} {{command "command"}} {{globalFlag "options"}} {{arg "arguments"}}
 
-{{header "Commands:"}}{{if not .Commands}}
-  No commands in {{join (commandPath .NamespacePath) " "}}.{{end}}{{range .Commands}}
+{{header "Commands:"}}{{if not .Plugins}}
+  No plugins in {{join (commandPath .NamespacePath) " "}}.{{end}}{{range .Plugins}}
   {{join (commandPath (offset .CommandPath 1)) " "}} {{if .Flags}}{{join (flags .Flags) " "}} {{globalFlag "--"}} {{end}}{{join (args .Args) " "}}
 		{{.Usage}}{{range .Flags}}
 		{{flag .}}: {{.Usage}}{{end}}{{range .Args}}
@@ -25,7 +25,7 @@ var HelpTemplate = `{{header "Usage:"}}
   {{.UsageError}}
 {{end}}`
 
-func (c *Cli) PrintHelp(commands []*Command) error {
+func (c *Cli) printHelp(plugins []*Plugin) error {
 	funcs := template.FuncMap{
 		"join":        join,
 		"offset":      offset,
@@ -44,7 +44,7 @@ func (c *Cli) PrintHelp(commands []*Command) error {
 	w := tabwriter.NewWriter(c.stdio.Out, 1, 8, 2, ' ', 0)
 	t := template.Must(template.New("help").Funcs(funcs).Parse(HelpTemplate))
 
-	c.Commands = commands
+	c.Plugins = plugins
 	err := t.Execute(w, c)
 	if err != nil {
 		return err
