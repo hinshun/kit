@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
-	"github.com/hinshun/kitapi/kit"
 )
 
 type VerifyFunc func(c *Cli) error

@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	"github.com/hinshun/kit/config"
-	"github.com/hinshun/kit/content/ipfsstore"
-	"github.com/hinshun/kit/content/kitstore"
-	"github.com/hinshun/kit/content/localstore"
-	"github.com/hinshun/kit/introspect"
-	"github.com/hinshun/kitapi/kit"
+)
+
+var (
+	KitDir         = ".kit"
+	ConfigFilename = "config.json"
+	ConfigPath     = filepath.Join(KitDir, ConfigFilename)
 )
 
 type Kit struct {
@@ -20,16 +21,8 @@ type Kit struct {
 }
 
 func NewKit() *Kit {
-	s := kitstore.NewStore(
-		localstore.NewStore(
-			ipfsstore.NewStore(),
-		),
-	)
-
 	return &Kit{
-		cli: NewCli(
-			NewLoader(s),
-		),
+		cli: NewCli(NewLoader()),
 	}
 }
 
@@ -39,7 +32,7 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	configPath := filepath.Join(os.Getenv("HOME"), kit.ConfigPath)
+	configPath := filepath.Join(os.Getenv("HOME"), ConfigPath)
 	cfg, err := config.New(configPath)
 	if err != nil {
 		return err
@@ -48,10 +41,9 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 	plugin := config.Plugin{
 		Plugins: config.Plugins{
 			{
-				Name:     "kit",
-				Usage:    "Composable command-line toolkit.",
-				Manifest: cfg.Manifest,
-				Plugins:  cfg.Plugins,
+				Name:    "kit",
+				Usage:   "Composable command-line toolkit.",
+				Plugins: cfg.Plugins,
 			},
 		},
 	}
@@ -66,14 +58,13 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		plugin.Plugins = config.InitConfig.Plugins
 	}
 
-	cliArgs := k.cli.Args()
-	command, err := k.cli.GetCommand(ctx, plugin, cliArgs)
+	command, err := k.cli.GetCommand(ctx, plugin, k.cli.Args())
 	if err != nil {
 		return err
 	}
 
 	if k.cli.options.Autocomplete != "" {
-		ctx = introspect.WithKit(ctx, k.cli)
+		// ctx = introspect.WithKit(ctx, k.cli)
 		completions := command.Autocomplete(ctx, k.cli.options.Autocomplete)
 		switch k.cli.options.Autocomplete {
 		case "bash", "fish":
@@ -120,6 +111,6 @@ func (k *Kit) Run(ctx context.Context, args []string) error {
 		}
 	}
 
-	ctx = introspect.WithKit(ctx, k.cli)
+	// ctx = introspect.WithKit(ctx, k.cli)
 	return command.Action(ctx)
 }

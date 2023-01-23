@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit/introspect"
-	"github.com/hinshun/kitapi/kit"
 )
 
 type Cli struct {

@@ -8,18 +8,14 @@ import (
 	"runtime"
 
 	"github.com/hinshun/kit/config"
-	"github.com/hinshun/kit/content"
-	"github.com/hinshun/kitapi/kit"
+	"github.com/hinshun/kit"
 )
 
 type Loader struct {
-	store content.Store
 }
 
-func NewLoader(store content.Store) *Loader {
-	return &Loader{
-		store: store,
-	}
+func NewLoader() *Loader {
+	return &Loader{}
 }
 
 func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []string) (*Command, error) {
@@ -74,10 +70,7 @@ func (l *Loader) GetCommand(ctx context.Context, plugin config.Plugin, args []st
 		for _, platform := range manifest.Platforms {
 			if platform.Architecture == runtime.GOARCH &&
 				platform.OS == runtime.GOOS {
-				path, err = l.store.Get(ctx, platform.Digest)
-				if err != nil {
-					return nil, err
-				}
+				path = platform.Digest
 				break
 			}
 		}
@@ -175,7 +168,7 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 }
 
 func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error) {
-	if plugin.Manifest == "" {
+	if plugin.Path == "" {
 		return config.Manifest{
 			Usage:   plugin.Usage,
 			Type:    config.NamespaceManifest,
@@ -183,12 +176,7 @@ func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.
 		}, nil
 	}
 
-	path, err := l.store.Get(ctx, plugin.Manifest)
-	if err != nil {
-		return config.Manifest{}, err
-	}
-
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(plugin.Path)
 	if err != nil {
 		return config.Manifest{}, err
 	}
