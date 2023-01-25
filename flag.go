@@ -1,16 +1,16 @@
-package cli
+package kit
 
 import (
 	"context"
-	"flag"
+	"strconv"
 )
 
 type Flag interface {
 	Name() string
 	Type() string
 	Usage() string
-	Set(*flag.FlagSet)
-	Autocomplete(ctx context.Context, input string) []string
+	Set(ctx context.Context, v string) error
+	Autocomplete(ctx context.Context, input string) ([]Completion, error)
 }
 
 type stringFlag struct {
@@ -36,12 +36,13 @@ func (f *stringFlag) Usage() string {
 	return f.usage
 }
 
-func (f *stringFlag) Set(flagSet *flag.FlagSet) {
-	flagSet.StringVar(f.dst, f.name, f.value, f.usage)
+func (f *stringFlag) Set(ctx context.Context, v string) error {
+	*f.dst = v
+	return nil
 }
 
-func (f *stringFlag) Autocomplete(ctx context.Context, input string) []string {
-	return nil
+func (f *stringFlag) Autocomplete(ctx context.Context, input string) ([]Completion, error) {
+	return nil, nil
 }
 
 type boolFlag struct {
@@ -60,17 +61,22 @@ func (f *boolFlag) Name() string {
 }
 
 func (f *boolFlag) Type() string {
-	return ""
+	return "bool"
 }
 
 func (f *boolFlag) Usage() string {
 	return f.usage
 }
 
-func (f *boolFlag) Autocomplete(ctx context.Context, input string) []string {
-	return nil
+func (f *boolFlag) Autocomplete(ctx context.Context, input string) ([]Completion, error) {
+	return nil, nil
 }
 
-func (f *boolFlag) Set(flagSet *flag.FlagSet) {
-	flagSet.BoolVar(f.dst, f.name, f.value, f.usage)
+func (f *boolFlag) Set(ctx context.Context, v string) error {
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return err
+	}
+	*f.dst = b
+	return nil
 }

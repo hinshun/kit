@@ -7,17 +7,7 @@ import (
 )
 
 var (
-	InitConfig = Config{
-		Plugins: Plugins{{
-			Name: "si",
-			Usage: "Tools for Software Infra team",
-			Plugins: Plugins{{
-				Name: "break-glass",
-				Usage: "Force approve a pull request and emails change management committee",
-				Path: "/n/nix/tech/store/vcddxin45qdxqddl97nwipav56x1jzzg-si-scripts/bin/break-glass",
-			}},
-		}},
-	}
+	InitConfig = Config{}
 )
 
 // Config

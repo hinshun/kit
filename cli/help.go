@@ -111,7 +111,7 @@ func (c *Cli) DecorateFlags(inputs []config.Flag) []string {
 
 func (c *Cli) DecorateFlag(flag config.Flag) string {
 	var output string
-	if flag.Type == "" {
+	if flag.Type == "bool" {
 		output = fmt.Sprintf("--%s", flag.Name)
 	} else {
 		output = fmt.Sprintf("--%s <%s>", flag.Name, flag.Type)

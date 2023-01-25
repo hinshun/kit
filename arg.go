@@ -1,4 +1,4 @@
-package cli
+package kit
 
 import (
 	"context"
@@ -7,13 +7,8 @@ import (
 type Arg interface {
 	Type() string
 	Usage() string
-	Set(v string) error
-	Autocomplete(ctx context.Context, input string) []Completion
-}
-
-type Completion struct {
-	Group    string
-	Wordlist []string
+	Set(ctx context.Context, v string) error
+	Autocomplete(ctx context.Context, input string) ([]Completion, error)
 }
 
 type stringArg struct {
@@ -34,11 +29,11 @@ func (a *stringArg) Usage() string {
 	return a.usage
 }
 
-func (a *stringArg) Set(v string) error {
+func (a *stringArg) Set(ctx context.Context, v string) error {
 	*a.path = v
 	return nil
 }
 
-func (a *stringArg) Autocomplete(ctx context.Context, input string) []Completion {
-	return nil
+func (a *stringArg) Autocomplete(ctx context.Context, input string) ([]Completion, error) {
+	return nil, nil
 }

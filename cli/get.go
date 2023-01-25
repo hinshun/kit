@@ -9,23 +9,17 @@ import (
 	"runtime"
 	"syscall"
 
+	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
 )
 
-type Loader struct {
-}
-
-func NewLoader() *Loader {
-	return &Loader{}
-}
-
-func (l *Loader) GetPlugin(ctx context.Context, plugin config.Plugin, args []string) (*Plugin, error) {
-	leaf, depth, err := l.FindPlugin(ctx, plugin, args)
+func GetPlugin(ctx context.Context, plugin config.Plugin, args []string) (*Plugin, error) {
+	leaf, depth, err := FindPlugin(ctx, plugin, args)
 	if err != nil {
 		return nil, err
 	}
 
-	manifest, err := l.GetManifest(ctx, leaf)
+	manifest, err := GetManifest(ctx, leaf)
 	if err != nil {
 		return nil, err
 	}
@@ -43,12 +37,7 @@ func (l *Loader) GetPlugin(ctx context.Context, plugin config.Plugin, args []str
 			return nil, err
 		}
 
-		constructor, err := OpenConstructor(path)
-		if err != nil {
-			return nil, err
-		}
-
-		cmd, err := constructor()
+		cmd, err := kit.Connect(path)
 		if err != nil {
 			return nil, err
 		}
@@ -65,6 +54,7 @@ func (l *Loader) GetPlugin(ctx context.Context, plugin config.Plugin, args []str
 			Args:        manifest.Args,
 			Flags:       manifest.Flags,
 			Action: func(ctx context.Context) error {
+				defer cmd.Close()
 				return cmd.Run(ctx)
 			},
 		}
@@ -75,7 +65,7 @@ func (l *Loader) GetPlugin(ctx context.Context, plugin config.Plugin, args []str
 	case config.ManifestNamespace:
 		var plugins []*Plugin
 		for _, subplugin := range leaf.Plugins {
-			submanifest, err := l.GetManifest(ctx, subplugin)
+			submanifest, err := GetManifest(ctx, subplugin)
 			if err != nil {
 				return nil, err
 			}
@@ -101,7 +91,7 @@ func (l *Loader) GetPlugin(ctx context.Context, plugin config.Plugin, args []str
 		resolved := &Plugin{
 			CommandPath: commandPath,
 			Usage:       namespaceUsage(plugin, manifest),
-			Plugins:    plugins,
+			Plugins:     plugins,
 		}
 
 		resolved.Verify = VerifyNamespace(resolved, args, depth)
@@ -112,13 +102,13 @@ func (l *Loader) GetPlugin(ctx context.Context, plugin config.Plugin, args []str
 	}
 }
 
-func (l *Loader) FindPlugin(ctx context.Context, plugin config.Plugin, args []string) (config.Plugin, int, error) {
-	return l.findPlugin(ctx, plugin, args, 0)
+func FindPlugin(ctx context.Context, plugin config.Plugin, args []string) (config.Plugin, int, error) {
+	return findPlugin(ctx, plugin, args, 0)
 }
 
-func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []string, depth int) (config.Plugin, int, error) {
+func findPlugin(ctx context.Context, plugin config.Plugin, args []string, depth int) (config.Plugin, int, error) {
 	// Get the manifest's plugins if any.
-	manifest, err := l.GetManifest(ctx, plugin)
+	manifest, err := GetManifest(ctx, plugin)
 	if err != nil {
 		return plugin, depth, err
 	}
@@ -149,7 +139,7 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 
 	// Check the type of the plugin to decide whether to continue finding.
 	child := plugin.Plugins[index]
-	manifest, err = l.GetManifest(ctx, child)
+	manifest, err = GetManifest(ctx, child)
 	if err != nil {
 		return child, depth, err
 	}
@@ -160,13 +150,13 @@ func (l *Loader) findPlugin(ctx context.Context, plugin config.Plugin, args []st
 		return child, depth, nil
 	case config.ManifestNamespace:
 		// If it's a namespace, there are more possible matches.
-		return l.findPlugin(ctx, child, args, depth)
+		return findPlugin(ctx, child, args, depth)
 	default:
 		return child, 0, fmt.Errorf("unrecognized manifest type '%s'", manifest.Type)
 	}
 }
 
-func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error) {
+func GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error) {
 	if plugin.Path == "" {
 		return config.Manifest{
 			Usage:   plugin.Usage,
@@ -184,6 +174,7 @@ func (l *Loader) GetManifest(ctx context.Context, plugin config.Plugin) (config.
 	var manifest config.Manifest
 	err = json.NewDecoder(f).Decode(&manifest)
 	if err != nil {
+		panic(err)
 		if errors.Is(err, &json.SyntaxError{}) {
 			return config.Manifest{}, err
 		}

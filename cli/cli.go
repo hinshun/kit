@@ -2,10 +2,12 @@ package cli
 
 import (
 	"context"
-	"flag"
-	"io/ioutil"
+	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/hinshun/kit"
 	"github.com/hinshun/kit/config"
 	"github.com/hinshun/kit/introspect"
 )
@@ -13,26 +15,20 @@ import (
 type Cli struct {
 	NamespacePath  []string
 	NamespaceUsage string
-	Plugins       []*Plugin
+	Plugins        []*Plugin
 	UsageError     error
 
-	flagSet *flag.FlagSet
+	parsedArgs []string
 
-	loader *Loader
-	stdio  Stdio
+	stdio kit.Stdio
 
 	options *introspect.Options
 	theme   *introspect.Theme
 }
 
-func NewCli(loader *Loader) *Cli {
-	flagSet := flag.NewFlagSet("cli", flag.ContinueOnError)
-	flagSet.SetOutput(ioutil.Discard)
-
+func New() *Cli {
 	return &Cli{
-		flagSet: flagSet,
-		loader:  loader,
-		stdio: Stdio{
+		stdio: kit.Stdio{
 			In:  os.Stdin,
 			Out: os.Stdout,
 			Err: os.Stderr,
@@ -50,30 +46,21 @@ func (c *Cli) Theme() introspect.Theme {
 	return *c.theme
 }
 
-func (c *Cli) Flags() []Flag {
-	return []Flag{
-		BoolFlag("help", "Displays help text.", false, &c.options.Help),
-		StringFlag("autocomplete", "Prints autocomplete word list for a shell", "", &c.options.Autocomplete),
+func (c *Cli) Flags() []kit.Flag {
+	return []kit.Flag{
+		kit.BoolFlag("help", "Displays help text.", false, &c.options.Help),
+		kit.StringFlag("autocomplete", "Prints autocomplete word list for a shell", "", &c.options.Autocomplete),
 	}
 }
 
-func (c *Cli) GetManifest(ctx context.Context, plugin config.Plugin) (config.Manifest, error) {
-	return c.loader.GetManifest(ctx, plugin)
-}
-
-func (c *Cli) Parse(args []string) error {
-	for _, flag := range c.Flags() {
-		flag.Set(c.flagSet)
-	}
-	return c.flagSet.Parse(args)
+func (c *Cli) Parse(ctx context.Context, shellArgs []string) error {
+	var err error
+	c.parsedArgs, err = parse(ctx, c.Flags(), shellArgs)
+	return err
 }
 
 func (c *Cli) Args() []string {
-	return append([]string{"kit"}, c.flagSet.Args()...)
-}
-
-func (c *Cli) GetPlugin(ctx context.Context, plugin config.Plugin, args []string) (*Plugin, error) {
-	return c.loader.GetPlugin(ctx, plugin, args)
+	return append([]string{"kit"}, c.parsedArgs...)
 }
 
 func (c *Cli) SetNamespaceUsage(commandPath []string, usage string) {
@@ -82,4 +69,97 @@ func (c *Cli) SetNamespaceUsage(commandPath []string, usage string) {
 	}
 	c.NamespacePath = commandPath
 	c.NamespaceUsage = usage
+}
+
+func (c *Cli) Run(ctx context.Context, shellArgs []string) error {
+	configPath := filepath.Join(os.Getenv("HOME"), kit.ConfigPath)
+	cfg, err := config.New(configPath)
+	if err != nil {
+		return err
+	}
+
+	plugin := config.Plugin{
+		Plugins: config.Plugins{
+			{
+				Name:    "kit",
+				Usage:   "Composable command-line toolkit.",
+				Plugins: cfg.Plugins,
+			},
+		},
+	}
+
+	manifest, err := GetManifest(ctx, plugin)
+	if err != nil {
+		return err
+	}
+
+	merged := manifest.Plugins.Merge(plugin.Plugins)
+	if len(merged) == 0 {
+		plugin.Plugins = config.InitConfig.Plugins
+	}
+
+	err = c.Parse(ctx, shellArgs)
+	if err != nil {
+		return err
+	}
+
+	resolved, err := GetPlugin(ctx, plugin, c.Args())
+	if err != nil {
+		return err
+	}
+
+	if c.options.Autocomplete != "" {
+		// ctx = introspect.WithKit(ctx, c)
+		completions, err := resolved.Autocomplete(ctx, c.options.Autocomplete)
+		if err != nil {
+			return err
+		}
+
+		switch c.options.Autocomplete {
+		case "bash", "fish":
+			var wordlist []string
+			for _, completion := range completions {
+				wordlist = append(wordlist, completion.Wordlist...)
+			}
+			fmt.Printf("%s", strings.Join(wordlist, " "))
+		case "zsh":
+			var shellCmds []string
+			for _, completion := range completions {
+				shellCmds = append(
+					shellCmds,
+					fmt.Sprintf("local -a %s", completion.Group),
+					fmt.Sprintf("%s=(%s)", completion.Group, strings.Join(completion.Wordlist, " ")),
+					fmt.Sprintf("_describe %s %s", completion.Group, completion.Group),
+				)
+			}
+			fmt.Printf("%s", strings.Join(shellCmds, ";"))
+		}
+		return nil
+	}
+
+	if !c.options.Help {
+		err = resolved.Verify(ctx, c)
+		if err != nil {
+			c.UsageError = err
+		}
+	}
+
+	if c.options.Help || c.UsageError != nil || resolved.Action == nil {
+		if resolved.Action == nil {
+			c.SetNamespaceUsage(resolved.CommandPath, resolved.Usage)
+			return c.printHelp(resolved.Plugins)
+		} else {
+			namespace := config.Plugin{Plugins: merged}.FindParent(resolved.CommandPath)
+			namespaceManifest, err := GetManifest(ctx, namespace)
+			if err != nil {
+				return err
+			}
+
+			c.SetNamespaceUsage(resolved.CommandPath[:len(resolved.CommandPath)-1], namespaceManifest.Usage)
+			return c.printHelp([]*Plugin{resolved})
+		}
+	}
+
+	// ctx = introspect.WithKit(ctx, c)
+	return resolved.Action(ctx)
 }

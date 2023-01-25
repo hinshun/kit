@@ -40,5 +40,5 @@ func run() error {
 		defer p.Close()
 	}
 
-	return cli.NewKit().Run(ctx, os.Args[1:])
+	return cli.New().Run(ctx, os.Args[1:])
 }

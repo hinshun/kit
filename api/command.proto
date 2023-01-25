@@ -1,0 +1,60 @@
+syntax = "proto3";
+package proto;
+option go_package = "github.com/hinshun/kit/api";
+
+service Command {
+    rpc Usage(Empty) returns (UsageResponse);
+    rpc Set(SetRequest) returns (SetResponse);
+    rpc Autocomplete(AutocompleteRequest) returns (AutocompleteResponse);
+    rpc Run(RunRequest) returns (RunResponse);
+}
+
+message Empty {}
+
+message UsageResponse {
+    string usage = 1;
+    repeated Flag flags = 2;
+    repeated Arg args = 3;
+}
+
+message Flag {
+    string id = 1;
+    string name = 2;
+    string type = 3;
+    string usage = 4;
+}
+
+message Arg {
+    string id = 1;
+    string type = 2;
+    string usage = 3;
+}
+
+message SetRequest {
+    string id = 1;
+    string value = 2;
+}
+
+message SetResponse {
+}
+
+message AutocompleteRequest {
+    string id = 1;
+    string input = 2;
+}
+
+message AutocompleteResponse {
+    repeated Completion completions = 1;
+}
+
+message Completion {
+    string group = 1;
+    repeated string wordlist = 2;
+}
+
+message RunRequest {
+}
+
+message RunResponse {
+    uint32 exit_status = 1;
+}
