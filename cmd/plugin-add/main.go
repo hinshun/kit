@@ -56,13 +56,11 @@ func (c *command) Flags() []kit.Flag {
 		kit.BoolFlag(
 			"pin",
 			"Pins the plugin's parent namespace if adding to an implicit namespace.",
-			false,
 			&c.pin,
 		),
 		kit.BoolFlag(
 			"overwrite",
 			"Overwrites any namespace or command if conflicting at the command path.",
-			false,
 			&c.overwrite,
 		),
 	}

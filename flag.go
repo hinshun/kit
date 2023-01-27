@@ -48,12 +48,11 @@ func (f *stringFlag) Autocomplete(ctx context.Context, input string) ([]Completi
 type boolFlag struct {
 	name  string
 	usage string
-	value bool
 	dst   *bool
 }
 
-func BoolFlag(name, usage string, value bool, dst *bool) Flag {
-	return &boolFlag{name, usage, value, dst}
+func BoolFlag(name, usage string, dst *bool) Flag {
+	return &boolFlag{name, usage, dst}
 }
 
 func (f *boolFlag) Name() string {

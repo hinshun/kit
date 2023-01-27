@@ -48,8 +48,8 @@ func (c *Cli) Theme() introspect.Theme {
 
 func (c *Cli) Flags() []kit.Flag {
 	return []kit.Flag{
-		kit.BoolFlag("help", "Displays help text.", false, &c.options.Help),
-		kit.StringFlag("autocomplete", "Prints autocomplete word list for a shell", "", &c.options.Autocomplete),
+		kit.BoolFlag("help", "Displays help text.", &c.options.Help),
+		kit.StringFlag("autocomplete", "Prints autocomplete word list for a shell.", "", &c.options.Autocomplete),
 	}
 }
 
